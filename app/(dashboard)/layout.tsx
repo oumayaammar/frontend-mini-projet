@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import "../globals.css";
 import AppSideBar  from "@/components/AppSideBar";
 import Navbar from "@/components/Navbar";
 import { ThemeProvider } from "@/components/ui/providers/ThemeProvider";
@@ -35,20 +35,21 @@ export  default  async function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex ">
-        
+        <SidebarProvider defaultOpen={defaultOpen}>
           <ThemeProvider
               attribute="class"
               defaultTheme="system"
               enableSystem
               disableTransitionOnChange
             >
-              
-              
-                <div className="w-full">{children}</div>
-              
+              <AppSideBar />
+              <main className="w-full">
+                <Navbar/>
+                <div className="px-4">{children}</div>
+              </main>
               
           </ThemeProvider>
-  
+        </SidebarProvider>
       </body>
     </html>
   );

@@ -1,0 +1,19 @@
+ <div className="min-h-screen  ">
+      <div className="flex flex-col lg:flex-row gap-4">
+        {/* LEFT SIDE */}
+        <div className="flex-1 w-4/5 bg-primary-foreground pt-1.5 relative">
+          <Button variant="secondary" size="icon" className="text-gray-400  absolute top-2 right-0 z-50">
+              <Link href="/news"> <CirclePlus/>  </Link>
+          </Button>
+          <CarouselSize/>
+          <div className="bg-blue-300 mt-4 p-4">
+            hello
+          </div>
+        </div>
+        {/* RIGHT SIDE */}
+        <div  className=" bg-primary-foreground w-full lg:w-1/3  p-4">
+          {/* <CalendarDemo/>   */}
+          <ChartPieDonutText />
+        </div>
+      </div>
+    </div>
