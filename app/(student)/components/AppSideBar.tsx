@@ -20,8 +20,7 @@ import {
 } from "@/components/ui/sidebar"
 import Link from 'next/link';
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
-// import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 
 
@@ -32,19 +31,14 @@ const items = [
     icon: Home,
   },
   {
-    title: "Inbox",
+    title: "Message",
     url: "#",
     icon: Inbox,
   },
   {
-    title: "Calendar",
+    title: "Time Table",
     url: "#",
     icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
   },
   {
     title: "Settings",
@@ -71,7 +65,6 @@ const AppSideBar = () => {
       </SidebarHeader>
         
       <SidebarContent>
-        
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent >
             <SidebarMenu>
@@ -91,7 +84,6 @@ const AppSideBar = () => {
               ))} 
             </SidebarMenu>
             
-            {/* NESTED : News */}
         <SidebarGroup>
           <SidebarGroupLabel>News</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -103,16 +95,6 @@ const AppSideBar = () => {
                     See All News
                   </Link>
                 </SidebarMenuButton>
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <Link href="/#">
-                        <Plus />
-                        Add News
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
@@ -129,42 +111,6 @@ const AppSideBar = () => {
                     See All Courses
                   </Link>
                 </SidebarMenuButton>
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <Link href="/#">
-                        <Plus />
-                        Add Course
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        {/* NESTED : Users  */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Users</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/users">
-                    <Users2 />
-                    See All Users
-                  </Link>
-                </SidebarMenuButton>
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <Link href="/#">
-                        <Plus />
-                        Add User
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>

@@ -33,13 +33,14 @@ export default function SignInPage() {
               className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none transition text-slate-800 placeholder:text-slate-400 focus:border-slate-500"
             />
           </div>
-
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white transition hover:bg-slate-800"
-          >
-             <Link href="/admin-dashboard">Sign in</Link>
-          </button>
+          <Link href="/admin-dashboard">
+            <button
+              type="submit"
+              className="w-full rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white transition hover:bg-slate-800"
+            >
+              Sign in
+            </button>
+          </Link>
         </form>
 
         <p className="mt-4 text-sm text-slate-600">

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/sidebar"
 import Link from 'next/link';
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 // import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
 
