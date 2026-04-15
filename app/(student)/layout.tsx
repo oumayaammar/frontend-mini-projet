@@ -29,28 +29,20 @@ export  default  async function RootLayout({
   const cookiesStore =  await cookies();
   const defaultOpen = cookiesStore.get("sidebar-open")?.value === "true" ? true : false;
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      suppressHydrationWarning
-    >
-      <body className="min-h-full flex ">
-        <SidebarProvider defaultOpen={defaultOpen}>
-          <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <AppSideBar />
-              <main className="w-full">
-                <Navbar/>
-                <div className="px-4">{children}</div>
-              </main>
-              
-          </ThemeProvider>
-        </SidebarProvider>
-      </body>
-    </html>
+    <SidebarProvider defaultOpen={defaultOpen}>
+      <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AppSideBar />
+          <main className="w-full">
+            <Navbar/>
+            <div className="px-4">{children}</div>
+          </main>
+          
+      </ThemeProvider>
+    </SidebarProvider>
   );
 }

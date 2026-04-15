@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Settings, Edit, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 
 const CURRENT_USER_ID = "user-1"
 
@@ -181,9 +182,11 @@ export default function MessagingPage() {
         <div className="flex items-center justify-between border-b border-border p-4">
           <h1 className="text-xl font-bold text-foreground">Messenger</h1>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-              <Edit className="size-5" />
-            </Button>
+            <Link href="/new-message">
+              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                <Edit className="size-5" />
+              </Button>
+            </Link>
             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
               <Settings className="size-5" />
             </Button>
