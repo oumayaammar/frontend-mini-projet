@@ -67,7 +67,7 @@ export default function TimetablePage() {
                 {row.periods.map((subject, index) => (
                   <div
                     key={index}
-                    className="flex flex-row gap-5 rounded-lg bg-secondary/30 p-3 border-b-2"
+                    className="flex flex-row justify-between gap-5 rounded-lg bg-secondary/30 p-3 border-b-2"
                   >
                     <div className="flex flex-col text-center">    
                         <span className="text-s font-medium text-foreground">
@@ -79,16 +79,23 @@ export default function TimetablePage() {
                         </span>
                     </div>
                     <div>
-
                         <div
-                        className="self-end rounded-md px-2 pt-1 text-s"
+                        className="self-end rounded-md px-2 pt-1 text-s text-center"
                         >
                         {subject}
                         </div>
                         <div
-                        className="self-start rounded-md px-2 pb-1 text-xs font-light"
+                        className="self-start rounded-md px-2 pb-1 text-xs font-light text-center"
                         >
                         (mohamed amine lazreg)
+                        </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row">
+                        <div className="self-center rounded-md px-2 pb-1 text-xs font-medium">
+                            K10
+                        </div>
+                        <div className="self-center rounded-md px-2 pb-1 text-xs font-medium">
+                            H
                         </div>
                     </div>
                   </div>

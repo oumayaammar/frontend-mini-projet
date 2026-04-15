@@ -27,17 +27,17 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 const items = [
   {
     title: "Home",
-    url: "/admin-dashboard",
+    url: "/student-dashboard",
     icon: Home,
   },
   {
     title: "Message",
-    url: "#",
+    url: "/messages",
     icon: Inbox,
   },
   {
     title: "Time Table",
-    url: "#",
+    url: "/timetable",
     icon: Calendar,
   },
   {
@@ -106,7 +106,7 @@ const AppSideBar = () => {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/#">
+                  <Link href="/courses">
                     <Projector />
                     See All Courses
                   </Link>
