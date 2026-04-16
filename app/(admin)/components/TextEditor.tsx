@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import {
   Bold,
   Italic,
@@ -75,6 +75,37 @@ export function TextEditor({
   const editorRef = useRef<HTMLDivElement>(null)
   const [wordCount, setWordCount] = useState(0)
   const [charCount, setCharCount] = useState(0)
+  const isInitialMount = useRef(true)
+
+  // Sync initialContent changes - append new content to the right of existing content
+  useEffect(() => {
+    if (editorRef.current && initialContent) {
+      if (isInitialMount.current) {
+        // On first mount, just set the content
+        editorRef.current.innerHTML = initialContent
+        isInitialMount.current = false
+      } else {
+        // On subsequent updates, append to the right (end) of existing content
+        const selection = window.getSelection()
+        const range = document.createRange()
+        
+        // Move cursor to end of content
+        range.selectNodeContents(editorRef.current)
+        range.collapse(false) // false = collapse to end
+        
+        selection?.removeAllRanges()
+        selection?.addRange(range)
+        
+        // Focus and update counts
+        editorRef.current.focus()
+        
+        const text = editorRef.current.innerText || ""
+        const words = text.trim().split(/\s+/).filter(word => word.length > 0)
+        setWordCount(words.length)
+        setCharCount(text.length)
+      }
+    }
+  }, [initialContent])
 
   const execCommand = useCallback((command: string, value?: string) => {
     document.execCommand(command, false, value)
@@ -276,10 +307,10 @@ export function TextEditor({
         onInput={handleInput}
         data-placeholder={placeholder}
         className={cn(
-          "flex-1 min-h-75 p-4 outline-none overflow-y-auto",
+          "flex-1 min-h-[300px] p-4 outline-none overflow-y-auto",
           "prose prose-sm max-w-none",
           "focus:ring-0",
-          "empty:before:content-[attr(data-placeholder)]",
+          "[&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-muted-foreground [&:empty]:before:pointer-events-none",
           "[&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:text-foreground",
           "[&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mb-3 [&_h2]:text-foreground",
           "[&_h3]:text-lg [&_h3]:font-medium [&_h3]:mb-2 [&_h3]:text-foreground",
@@ -293,7 +324,6 @@ export function TextEditor({
           "[&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-4",
           "[&_hr]:border-border [&_hr]:my-6"
         )}
-        dangerouslySetInnerHTML={{ __html: initialContent }}
       />
 
       {/* Footer with word/char count */}
