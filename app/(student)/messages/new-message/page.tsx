@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -74,6 +75,7 @@ function getTypeBgColor(type: Recipient["type"]) {
 }
 
 export default function NewConversationPage() {
+  const router = useRouter()
   const [inputValue, setInputValue] = useState("")
   const [selectedRecipients, setSelectedRecipients] = useState<Recipient[]>([])
   const [message, setMessage] = useState("")
@@ -129,15 +131,24 @@ export default function NewConversationPage() {
 
   const handleCreateConversation = () => {
     if (selectedRecipients.length === 0 || message.trim() === "") return
-    // Here you would typically send to an API
-    alert(`Creating conversation with: ${selectedRecipients.map((r) => r.name).join(", ")}\nMessage: ${message}`)
+    
+    // Get the conversation name from recipients
+    const conversationName = selectedRecipients.map((r) => r.name).join(", ")
+    
+    // Redirect to messages page with conversation data as URL params
+    const params = new URLSearchParams({
+      conversationName,
+      conversationMessage: message,
+    })
+    
+    router.push(`/messages?${params.toString()}`)
   }
 
   return (
     <div className="flex h-screen flex-col bg-background">
       {/* Header */}
       <header className="flex items-center gap-3 border-b border-border bg-card p-4">
-        <Link href="/">
+        <Link href="/messages">
           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
             <ArrowLeft className="size-5" />
           </Button>

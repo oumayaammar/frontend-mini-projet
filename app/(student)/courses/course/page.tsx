@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   BookOpen,
 } from "lucide-react"
+import { useState } from "react"
 
 const course = {
   title: "Advanced Web Development with React & Next.js",
@@ -53,13 +54,14 @@ Whether you're a beginner looking to start your frontend journey or an experienc
 }
 
 export default function CoursePage() {
+ 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link
-            href="/"
+            href="/courses"
             className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="size-5" />

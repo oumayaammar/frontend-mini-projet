@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { ConversationList, type Conversation } from "../components//conversation-list"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+  
 import { ChatView, type Message } from "../components/chat-view"
 import { EmptyChat } from "../components/empty-chat"
 import { Button } from "@/components/ui/button"
@@ -9,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Search, Settings, Edit, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { Conversation, ConversationList } from "../components/conversation-list"
 
 const CURRENT_USER_ID = "user-1"
 
@@ -106,11 +108,57 @@ const initialMessages: Record<string, Message[]> = {
 }
 
 export default function MessagingPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [conversations, setConversations] = useState(initialConversations)
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>("1")
   const [messages, setMessages] = useState(initialMessages)
   const [searchQuery, setSearchQuery] = useState("")
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+  // Check for new conversation from URL params
+  useEffect(() => {
+    const conversationName = searchParams.get("conversationName")
+    const conversationMessage = searchParams.get("conversationMessage")
+
+    if (conversationName && conversationMessage) {
+      const newConversationId = `conv-${Date.now()}`
+
+      // Create new conversation
+      const newConversation: Conversation = {
+        id: newConversationId,
+        name: conversationName,
+        lastMessage: conversationMessage,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        online: false,
+      }
+
+      // Create initial message
+      const newMessage: Message = {
+        id: `m-${Date.now()}`,
+        content: conversationMessage,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        senderId: CURRENT_USER_ID,
+        senderName: "You",
+      }
+
+      setConversations((prev) => [newConversation, ...prev])
+      setMessages((prev) => ({
+        ...prev,
+        [newConversationId]: [newMessage],
+      }))
+      setSelectedConversationId(newConversationId)
+
+      // Clear search params after handling
+      router.replace("/messages")
+    }
+  }, [searchParams, router])
 
   const selectedConversation = conversations.find(
     (c) => c.id === selectedConversationId
@@ -182,7 +230,7 @@ export default function MessagingPage() {
         <div className="flex items-center justify-between border-b border-border p-4">
           <h1 className="text-xl font-bold text-foreground">Messenger</h1>
           <div className="flex items-center gap-1">
-            <Link href="/new-message">
+            <Link href="/messages/new-message">
               <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
                 <Edit className="size-5" />
               </Button>
