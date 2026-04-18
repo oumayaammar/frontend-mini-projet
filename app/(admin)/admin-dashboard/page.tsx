@@ -15,7 +15,7 @@ export default function  AdminDashboard() {
         {/* LEFT SIDE */}
         <div className=" w-1/2 h-auto bg-primary-foreground pt-1.5 relative rounded-2xl">
           <Button  asChild variant="secondary" size="icon" className=" absolute top-2 right-0 z-50">
-              <Link href="/news"> <CirclePlus/>  </Link>
+              <Link href="/news-managment"> <CirclePlus/>  </Link>
           </Button>
           <CarouselSize/>
         </div>

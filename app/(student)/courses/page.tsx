@@ -7,7 +7,7 @@ export default function NewsPage(){
         <div className="p-5">
             <header className="mb-8 flex items-center gap-4">
                 <Link
-                href="/"
+                href="/student-dashboard"
                 className="flex size-10 items-center justify-center rounded-full bg-card text-foreground transition-colors hover:bg-secondary"
                 >
                 <ArrowLeft className="size-5" />

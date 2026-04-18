@@ -30,7 +30,7 @@ export function CardImage() {
         </CardDescription>
       </CardHeader>
       <CardFooter>
-        <Link href="/course">
+        <Link href="/courses/course">
             <Button className="w-full">View Course Details</Button>
         </Link>
       </CardFooter>
