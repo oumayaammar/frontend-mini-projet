@@ -19,9 +19,9 @@ import {
 
 
 import { useTheme } from "next-themes"
-import { Button } from './ui/button'
-import { SidebarTrigger } from './ui/sidebar'
-import { CommandWithShortcuts } from './SearchBar'
+import { Button } from '@/components/ui/button'
+import { SidebarTrigger } from '@/components/ui/sidebar'
+import { CommandWithShortcuts } from '@/components/SearchBar'
 
 
 
