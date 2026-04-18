@@ -1,5 +1,5 @@
 "use client"
-import { Calendar, ChevronDown, ChevronUp, Home, Inbox, Newspaper, Plus, Projector, Search, Settings,User2 ,Users2 } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, Home, Inbox, Newspaper, Plus, Projector, Search, Settings,User2 ,Users2, MessageCircle } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -32,12 +32,12 @@ const items = [
     icon: Home,
   },
   {
-    title: "Inbox",
+    title: "Messages",
     url: "#",
-    icon: Inbox,
+    icon: MessageCircle,
   },
   {
-    title: "Calendar",
+    title: "Time Tables",
     url: "#",
     icon: Calendar,
   },
@@ -84,8 +84,8 @@ const AppSideBar = () => {
                     </Link>
                     
                   </SidebarMenuButton>
-                  {item.title === "Inbox" && (
-                    <SidebarMenuBadge>24</SidebarMenuBadge>
+                  {item.title === "Message" && (
+                    <SidebarMenuBadge>2</SidebarMenuBadge>
                   )}
                 </SidebarMenuItem>
               ))} 
