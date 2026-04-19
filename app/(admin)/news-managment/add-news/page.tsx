@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { TextEditor } from "../components/TextEditor"
+import { TextEditor } from "../../components/TextEditor"
 import { ArrowLeft, Save, FileText, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"

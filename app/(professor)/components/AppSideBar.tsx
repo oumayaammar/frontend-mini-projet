@@ -1,11 +1,10 @@
 "use client"
-import { Calendar, ChevronDown, ChevronUp, Home, Inbox, Newspaper, Plus, Projector, Search, Settings,User2 ,Users2, MessageCircle } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, Home, Inbox, Newspaper, Plus, Projector, Search, Settings,User2 ,Users2 } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
@@ -21,35 +20,24 @@ import {
 import Link from 'next/link';
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-// import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
 
 
 const items = [
   {
     title: "Home",
-    url: "/admin-dashboard",
+    url: "/professor-dashboard",
     icon: Home,
   },
   {
-    title: "Messages",
-    url: "#",
-    icon: MessageCircle,
+    title: "Message",
+    url: "/professor/messages",
+    icon: Inbox,
   },
   {
-    title: "Time Tables",
-    url: "#",
+    title: "Time Table",
+    url: "/professor/timetable",
     icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
   },
 ];
 
@@ -60,7 +48,7 @@ const AppSideBar = () => {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/">
+              <Link href="/professor-dashboard" className='flex items-center gap-2'>
                 {/* add logo */}
                 <span>School-Mang</span>
               </Link>
@@ -71,7 +59,6 @@ const AppSideBar = () => {
       </SidebarHeader>
         
       <SidebarContent>
-        
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent >
             <SidebarMenu>
@@ -84,35 +71,24 @@ const AppSideBar = () => {
                     </Link>
                     
                   </SidebarMenuButton>
-                  {item.title === "Message" && (
-                    <SidebarMenuBadge>2</SidebarMenuBadge>
+                  {item.title === "Inbox" && (
+                    <SidebarMenuBadge>24</SidebarMenuBadge>
                   )}
                 </SidebarMenuItem>
               ))} 
             </SidebarMenu>
             
-            {/* NESTED : News */}
         <SidebarGroup>
           <SidebarGroupLabel>News</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/news-managment">
+                  <Link href="/professor/news">
                     <Newspaper />
                     See All News
                   </Link>
                 </SidebarMenuButton>
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <Link href="/news-managment/add-news">
-                        <Plus />
-                        Add News
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
@@ -124,35 +100,9 @@ const AppSideBar = () => {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/#">
+                  <Link href="/professor/courses">
                     <Projector />
                     See All Courses
-                  </Link>
-                </SidebarMenuButton>
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <Link href="/#">
-                        <Plus />
-                        Add Course
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        {/* NESTED : Users  */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Users</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/users">
-                    <Users2 />
-                    See All Users
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
