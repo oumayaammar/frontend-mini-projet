@@ -19,9 +19,10 @@ interface Recipient {
 
 const suggestions: Recipient[] = [
   { id: "all", name: "All", type: "all" },
-  { id: "g1", name: "Design Team", type: "group" },
-  { id: "g2", name: "Product Team", type: "group" },
-  { id: "g3", name: "Engineering", type: "group" },
+  { id: "g1", name: "Group A1", type: "group" },
+  { id: "g2", name: "Group A2", type: "group" },
+  { id: "g3", name: "Group B1", type: "group" },
+  { id: "g4", name: "Group B2", type: "group" },
   { id: "m1", name: "Mathematics", type: "subject" },
   { id: "m2", name: "Physics", type: "subject" },
   { id: "m3", name: "Computer Science", type: "subject" },
@@ -74,7 +75,7 @@ function getTypeBgColor(type: Recipient["type"]) {
   }
 }
 
-export default function NewConversationPage() {
+export default function ProfessorNewConversationPage() {
   const router = useRouter()
   const [inputValue, setInputValue] = useState("")
   const [selectedRecipients, setSelectedRecipients] = useState<Recipient[]>([])
@@ -135,13 +136,13 @@ export default function NewConversationPage() {
     // Get the conversation name from recipients
     const conversationName = selectedRecipients.map((r) => r.name).join(", ")
     
-    // Redirect to messages page with conversation data as URL params
+    // Redirect to professor messages page with conversation data as URL params
     const params = new URLSearchParams({
       conversationName,
       conversationMessage: message,
     })
     
-    router.push(`/messages?${params.toString()}`)
+    router.push(`/professor/messages?${params.toString()}`)
   }
 
   return (

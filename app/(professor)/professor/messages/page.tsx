@@ -1,61 +1,34 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-  
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Settings, Edit, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
-import { ConversationList } from "../../components/conversation-list"
-import { ChatView } from "../../components/chat-view"
+import { ConversationList, type Conversation } from "../../components/conversation-list"
+import { ChatView, type Message } from "../../components/chat-view"
 import { EmptyChat } from "../../components/empty-chat"
 
-
-const CURRENT_USER_ID = "user-1"
+const CURRENT_USER_ID = "professor-1"
+const STORAGE_KEY = "professor_conversations"
+const MESSAGES_STORAGE_KEY = "professor_messages"
 
 const initialConversations: Conversation[] = [
   {
     id: "1",
-    name: "Creative Director",
+    name: "Group A1",
     lastMessage: "Great work on the slides! Love it! Just one more thing...",
     timestamp: "13:53",
     online: true,
   },
   {
     id: "2",
-    name: "Sarah Chen",
+    name: "Group B2",
     lastMessage: "The new designs look amazing!",
     timestamp: "12:30",
     unread: 2,
-    online: true,
-  },
-  {
-    id: "3",
-    name: "Design Team",
-    lastMessage: "Alex: Can we review the mockups?",
-    timestamp: "11:15",
-  },
-  {
-    id: "4",
-    name: "Marcus Johnson",
-    lastMessage: "Thanks for your help yesterday",
-    timestamp: "Yesterday",
-    online: false,
-  },
-  {
-    id: "5",
-    name: "Product Team",
-    lastMessage: "Meeting scheduled for tomorrow at 2pm",
-    timestamp: "Yesterday",
-  },
-  {
-    id: "6",
-    name: "Emma Wilson",
-    lastMessage: "I&apos;ll send you the files shortly",
-    timestamp: "Monday",
     online: true,
   },
 ]
@@ -67,7 +40,7 @@ const initialMessages: Record<string, Message[]> = {
       content: "Hey! Are you here?",
       timestamp: "13:53",
       senderId: "other",
-      senderName: "Creative Director",
+      senderName: "Group A1",
     },
     {
       id: "m2",
@@ -81,7 +54,7 @@ const initialMessages: Record<string, Message[]> = {
       content: "Great work on the slides! Love it! Just one more thing...",
       timestamp: "13:53",
       senderId: "other",
-      senderName: "Creative Director",
+      senderName: "Group A1",
     },
   ],
   "2": [
@@ -90,11 +63,11 @@ const initialMessages: Record<string, Message[]> = {
       content: "Hi! Just wanted to share some feedback on the latest iteration.",
       timestamp: "12:15",
       senderId: "other",
-      senderName: "Sarah Chen",
+      senderName: "Group B2",
     },
     {
       id: "m5",
-      content: "Of course, I&apos;d love to hear your thoughts!",
+      content: "Of course, I'd love to hear your thoughts!",
       timestamp: "12:20",
       senderId: CURRENT_USER_ID,
       senderName: "You",
@@ -104,31 +77,86 @@ const initialMessages: Record<string, Message[]> = {
       content: "The new designs look amazing!",
       timestamp: "12:30",
       senderId: "other",
-      senderName: "Sarah Chen",
+      senderName: "Group B2",
     },
   ],
 }
 
-export default function MessagingPage() {
+export default function ProfessorMessagingPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [conversations, setConversations] = useState(initialConversations)
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>("1")
-  const [messages, setMessages] = useState(initialMessages)
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
+  const [messages, setMessages] = useState<Record<string, Message[]>>({})
   const [searchQuery, setSearchQuery] = useState("")
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
+  const hasProcessedParams = useRef(false)
 
-  // Check for new conversation from URL params
+  // Load from localStorage on mount
   useEffect(() => {
+    const savedConversations = localStorage.getItem(STORAGE_KEY)
+    const savedMessages = localStorage.getItem(MESSAGES_STORAGE_KEY)
+
+    setConversations(
+      savedConversations ? JSON.parse(savedConversations) : initialConversations
+    )
+    setMessages(
+      savedMessages ? JSON.parse(savedMessages) : initialMessages
+    )
+    setSelectedConversationId("1")
+    setIsHydrated(true)
+  }, [])
+
+  // Check for new conversation from URL params - only process once
+  useEffect(() => {
+    if (!isHydrated || hasProcessedParams.current) return
+
     const conversationName = searchParams.get("conversationName")
     const conversationMessage = searchParams.get("conversationMessage")
 
-    if (conversationName && conversationMessage) {
-      const newConversationId = `conv-${Date.now()}`
+    if (!conversationName || !conversationMessage) return
 
+    hasProcessedParams.current = true
+
+    // Load current state from localStorage to avoid stale state
+    const currentConversations = JSON.parse(
+      localStorage.getItem(STORAGE_KEY) || JSON.stringify(initialConversations)
+    )
+    const currentMessages = JSON.parse(
+      localStorage.getItem(MESSAGES_STORAGE_KEY) || JSON.stringify(initialMessages)
+    )
+
+    // Check if conversation already exists
+    const existingConversation = currentConversations.find(
+      (c: Conversation) => c.name.toLowerCase() === conversationName.toLowerCase()
+    )
+
+    let targetConversationId = ""
+    let updatedConversations = currentConversations
+    let updatedMessages = { ...currentMessages }
+
+    if (existingConversation) {
+      // Update existing conversation
+      targetConversationId = existingConversation.id
+      updatedConversations = currentConversations.map((c: Conversation) =>
+        c.id === existingConversation.id
+          ? {
+              ...c,
+              lastMessage: conversationMessage,
+              timestamp: new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+            }
+          : c
+      )
+    } else {
       // Create new conversation
+      targetConversationId = `conv-${Date.now()}`
+
       const newConversation: Conversation = {
-        id: newConversationId,
+        id: targetConversationId,
         name: conversationName,
         lastMessage: conversationMessage,
         timestamp: new Date().toLocaleTimeString([], {
@@ -138,29 +166,38 @@ export default function MessagingPage() {
         online: false,
       }
 
-      // Create initial message
-      const newMessage: Message = {
-        id: `m-${Date.now()}`,
-        content: conversationMessage,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        senderId: CURRENT_USER_ID,
-        senderName: "You",
-      }
-
-      setConversations((prev) => [newConversation, ...prev])
-      setMessages((prev) => ({
-        ...prev,
-        [newConversationId]: [newMessage],
-      }))
-      setSelectedConversationId(newConversationId)
-
-      // Clear search params after handling
-      router.replace("/messages")
+      updatedConversations = [newConversation, ...currentConversations]
     }
-  }, [searchParams, router])
+
+    // Add message to only the target conversation
+    const newMessage: Message = {
+      id: `m-${Date.now()}`,
+      content: conversationMessage,
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      senderId: CURRENT_USER_ID,
+      senderName: "You",
+    }
+
+    updatedMessages[targetConversationId] = [
+      ...(updatedMessages[targetConversationId] || []),
+      newMessage,
+    ]
+
+    // Save to localStorage
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedConversations))
+    localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(updatedMessages))
+
+    // Update state
+    setConversations(updatedConversations)
+    setMessages(updatedMessages)
+    setSelectedConversationId(targetConversationId)
+
+    // Clear search params after handling
+    router.replace("/professor/messages")
+  }, [isHydrated, searchParams, router])
 
   const selectedConversation = conversations.find(
     (c) => c.id === selectedConversationId
@@ -170,7 +207,7 @@ export default function MessagingPage() {
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = useCallback((content: string) => {
     if (!selectedConversationId) return
 
     const newMessage: Message = {
@@ -184,31 +221,42 @@ export default function MessagingPage() {
       senderName: "You",
     }
 
-    setMessages((prev) => ({
-      ...prev,
-      [selectedConversationId]: [
-        ...(prev[selectedConversationId] || []),
-        newMessage,
-      ],
-    }))
+    setMessages((prev) => {
+      const updated = {
+        ...prev,
+        [selectedConversationId]: [
+          ...(prev[selectedConversationId] || []),
+          newMessage,
+        ],
+      }
+      localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(updated))
+      return updated
+    })
 
     // Update last message in conversation
-    setConversations((prev) =>
-      prev.map((c) =>
+    setConversations((prev) => {
+      const updated = prev.map((c) =>
         c.id === selectedConversationId
           ? { ...c, lastMessage: content, timestamp: newMessage.timestamp }
           : c
       )
-    )
-  }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+      return updated
+    })
+  }, [selectedConversationId])
 
-  const handleSelectConversation = (id: string) => {
+  const handleSelectConversation = useCallback((id: string) => {
     setSelectedConversationId(id)
     setIsSidebarOpen(false)
-    // Clear unread when selecting
-    setConversations((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c))
-    )
+    setConversations((prev) => {
+      const updated = prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+      return updated
+    })
+  }, [])
+
+  if (!isHydrated) {
+    return <div />
   }
 
   return (

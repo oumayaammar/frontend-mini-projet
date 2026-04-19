@@ -36,7 +36,7 @@ const Navbar = () => {
       <SidebarTrigger />
       
       <div className='text-sm  flex items-center  gap-4 px-4'>
-        <Link href="/admin-dashboard" >Dashboard</Link>
+        <Link href="/student-dashboard" >Dashboard</Link>
         <CommandWithShortcuts/>
         {/* Theme Toggle */}
         <DropdownMenu>
