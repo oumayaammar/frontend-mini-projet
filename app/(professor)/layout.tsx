@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar";
 import { ThemeProvider } from "@/components/ui/providers/ThemeProvider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
+import { CoursesProvider } from "@/lib/courses-context";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -37,11 +38,12 @@ export  default  async function RootLayout({
           disableTransitionOnChange
         >
           <AppSideBar />
+           <CoursesProvider>
           <main className="w-full">
             <Navbar/>
             <div className="px-4">{children}</div>
           </main>
-          
+          </CoursesProvider>
       </ThemeProvider>
     </SidebarProvider>
   );
