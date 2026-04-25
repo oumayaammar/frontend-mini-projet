@@ -8,31 +8,50 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import Link from "next/link"
 
-export function CardImage() {
+export type CourseItem = {
+  id: string
+  title: string
+  description: string
+  subject?: string
+  targetGroup?: string
+  semester?: string
+  fileName?: string
+  filePath?: string
+  teacher?: string
+}
+
+interface CardImageProps {
+  course: CourseItem
+}
+
+export function CardImage({ course }: CardImageProps) {
   return (
-    <Card className="relative mx-auto w-full max-w-sm pt-0">
-      <div className="absolute inset-0 z-30 aspect-video bg-black/35" />
-      <img
-        src="https://as2.ftcdn.net/v2/jpg/02/98/35/71/1000_F_298357190_yjGRacL1FZ75l6wyRROrAdq6q3rMPCqD.jpg"
-        alt="Event cover"
-        className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
-      />
+    <Card className="relative mx-auto w-full p-5">
       <CardHeader>
         <CardAction>
-          <Badge variant="secondary">Featured</Badge>
+          <Badge variant="secondary">{course.subject || "Course"}</Badge>
         </CardAction>
-        <CardTitle>Design systems meetup</CardTitle>
+        <CardTitle>{course.title}</CardTitle>
         <CardDescription>
-          A practical talk on component APIs, accessibility, and shipping
-          faster.
+          {course.description}
+        </CardDescription>
+        <CardDescription>
+          {course.teacher || "Unknown teacher"}
         </CardDescription>
       </CardHeader>
       <CardFooter>
-        <Link href="/courses/course">
-            <Button className="w-full">View Course Details</Button>
-        </Link>
+        {course.filePath ? (
+          <Button asChild className="w-full">
+            <a href={course.filePath} download={course.fileName || true} target="_blank" rel="noreferrer">
+              File Download
+            </a>
+          </Button>
+        ) : (
+          <Button className="w-full" disabled>
+            File Download
+          </Button>
+        )}
       </CardFooter>
     </Card>
   )

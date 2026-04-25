@@ -2,17 +2,16 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
+import { Badge } from 'lucide-react';
 
 export interface NewsItem {
   id: string;
   title: string;
-  description: string;
   content: string;
   date: string;
   author?: string;
-  category?: string;
   image?: string;
+  isPinned?: boolean;
 }
 
 interface CardSmallProps {
@@ -21,13 +20,11 @@ interface CardSmallProps {
 }
 
 const defaultNews: NewsItem = {
-  id: '1',
-  title: 'Breaking News',
-  description: 'Stay updated with the latest news and announcements',
-  content: 'This is the full content of the news article. Click details to read more about this important update.',
+  id: '0',
+  title: '',
+  content: "",
   date: new Date().toLocaleDateString(),
-  author: 'News Team',
-  category: 'General'
+  author: '',
 };
 
 export function CardSmall({ news = defaultNews, onDetailsClick }: CardSmallProps) {
@@ -36,22 +33,24 @@ export function CardSmall({ news = defaultNews, onDetailsClick }: CardSmallProps
     <Card className="hover:shadow-lg transition-shadow overflow-hidden">
       {news.image && (
         <div className="relative w-full h-40 bg-muted">
-          <img src="/news-1.jpg"
+          <img src={news.image}
             alt={news.title}
             className="w-full h-full object-cover"/>
         </div>
       )}
       <CardHeader>
-        <CardTitle className="text-lg line-clamp-2">{news.title}</CardTitle>
+        <div className='flex justify-between w-full'>
+          <CardTitle className="text-lg line-clamp-2">{news.title}</CardTitle>
+          {news.isPinned ? (
+            <span className="ml-2 inline-block rounded bg-amber-600 px-2 py-1 text-xs text-primary-foreground">
+              Pinned
+            </span>) : null}
+          </div>
         <CardDescription className="text-xs">{news.date}</CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-foreground/80 line-clamp-2 mb-4">{news.description}</p>
-        {news.category && (
-          <span className="inline-block bg-secondary text-secondary-foreground px-2 py-1 rounded text-xs mb-4">
-            {news.category}
-          </span>
-        )}
+        <p className="text-sm text-foreground/80 line-clamp-2 mb-4">{news.content}</p>
+        
         <Button 
           variant="outline" 
           size="sm"

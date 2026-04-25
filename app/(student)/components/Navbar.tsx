@@ -31,7 +31,7 @@ const Navbar = () => {
   const { setTheme } = useTheme()
   return (
     
-    <nav className='w-full h-10 bg-secondary  flex items-center justify-between px-4' >
+    <nav className='w-full h-10 bg-secondary sticky top-0 z-500 flex items-center justify-between px-4' >
       
       <SidebarTrigger />
       

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Upload, X } from 'lucide-react';
@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FieldGroup, FieldLabel } from '@/components/ui/field';
-import { useCourses } from '@/lib/courses-context';
 
 
 interface FormData {
@@ -19,20 +18,102 @@ interface FormData {
   semester: string;
 }
 
-const subjects = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science', 'English', 'History'];
-const targetGroups = ['Group A', 'Group A1', 'Group A2', 'Group B', 'Group B1', 'Group B2', 'Group C'];
-const semesters = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6'];
+type ScheduleItem = {
+  id: string
+  subject: string
+  room: string
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+  type: string
+  targetGroup: string
+}
+
+type DaySchedule = {
+  day: string
+  entries: ScheduleItem[]
+}
+
+const SCHEDULE_URL =
+  (process.env.NEXT_PUBLIC_API_URL
+    ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")}/schedule`
+    : null) ?? "http://localhost:3002/schedule"
+
+const COURSES_UPLOAD_URL =
+  (process.env.NEXT_PUBLIC_API_URL
+    ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")}/courses/upload`
+    : null) ?? "http://localhost:3002/courses/upload"
+
+const semesters = ['S1', 'S2'];
 
 export default function CreateCoursePage() {
   const router = useRouter();
-  const { addCourse } = useCourses();
   const [formData, setFormData] = useState<FormData>({
     file: null,
     title: '',
-    subject: subjects[0],
-    targetGroup: targetGroups[0],
-    semester: semesters[0],
+    subject: "No subject selected",
+    targetGroup: "No target group selected",
+    semester: "No semester selected",
   });
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const subjects = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          schedule
+            .map((item) => String(item.subject ?? '').trim())
+            .filter((subject) => subject.length > 0),
+        ),
+      ),
+    [schedule],
+  )
+
+  const targetGroups = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          schedule
+            .map((item) => String(item.targetGroup ?? '').trim())
+            .filter((group) => group.length > 0),
+        ),
+      ),
+    [schedule],
+  )
+
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchSchedule = async () => {
+      try {
+        const token = localStorage.getItem("auth_token")
+        const response = await fetch(SCHEDULE_URL, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
+
+        if (!response.ok) {
+          throw new Error(`Failed to load schedule (${response.status})`)
+        }
+
+        const data = (await response.json()) as ScheduleItem[]
+        if (!isMounted) return
+        setSchedule(Array.isArray(data) ? data : [])
+      } catch {
+        if (!isMounted) return
+        setError("Could not load your schedule right now.")
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+
+    fetchSchedule()
+    
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -57,19 +138,34 @@ export default function CreateCoursePage() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    addCourse({
-      title: formData.title,
-      subject: formData.subject,
-      targetGroup: formData.targetGroup,
-      semester: formData.semester,
-      fileName: formData.file?.name || null,
-    });
-    
-    router.push('/professor/courses');
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+
+    try {
+      const token = localStorage.getItem("auth_token")
+      const payload = new FormData()
+      payload.append("title", formData.title)
+      payload.append("subject", formData.subject)
+      payload.append("targetGroup", formData.targetGroup)
+      payload.append("semester", formData.semester)
+      if (formData.file) payload.append("file", formData.file)
+
+      const response = await fetch(COURSES_UPLOAD_URL, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body: payload,
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to create course (${response.status})`)
+      }
+
+      router.push('/professor/courses')
+    } catch {
+      setError("Could not create the course right now.")
+    }
+  }
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -176,8 +272,8 @@ export default function CreateCoursePage() {
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     >
-                      {targetGroups.map(g => (
-                        <option key={g} value={g}>{g}</option>
+                      {targetGroups.map((g, index) => (
+                        <option key={`${g}-${index}`} value={g}>{g}</option>
                       ))}
                     </select>
                   </FieldGroup>

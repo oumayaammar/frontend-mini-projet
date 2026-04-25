@@ -1,28 +1,119 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Plus, Edit2, Trash2, Search, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useCourses } from '@/lib/courses-context';
+
+type ApiCourse = {
+  id: string
+  title: string
+  description: string
+  fileName?: string
+  filePath?: string
+  subject?: string
+  targetGroup?: string
+  semester?: string
+  uploadedAt: string
+}
+
+type CourseItem = {
+  id: string
+  title: string
+  description: string
+  subject?: string
+  targetGroup?: string
+  semester?: string
+  fileName?: string
+  filePath?: string
+  uploadedAt: string
+}
+
+const COURSES_URL =
+  (process.env.NEXT_PUBLIC_API_URL
+    ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")}/courses`
+    : null) ?? "http://localhost:3002/courses"
 
 
 export default function CoursesPage() {
-  const { courses, deleteCourse } = useCourses();
   const [searchQuery, setSearchQuery] = useState('');
+  const [courses, setCourses] = useState<CourseItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchCourses = async () => {
+      try {
+        const token = localStorage.getItem("auth_token")
+        const response = await fetch(COURSES_URL, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
+
+        if (!response.ok) throw new Error(`Failed to load courses (${response.status})`)
+
+        const data = (await response.json()) as ApiCourse[]
+        if (!isMounted) return
+
+        console.log(data)
+        const mappedCourses: CourseItem[] = (Array.isArray(data) ? data : []).map((course) => ({
+          id: course.id,
+          title: course.title,
+          description: course.description,
+          subject: course.subject,
+          targetGroup: course.targetGroup ?? "all",
+          semester: course.semester,
+          fileName: course.fileName,
+          filePath: course.filePath,
+          uploadedAt: course.uploadedAt,
+        }))
+
+        setCourses(mappedCourses)
+      } catch {
+        if (!isMounted) return
+        setError("Could not load courses right now.")
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+
+    fetchCourses()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const filteredCourses = courses.filter(course =>
     course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    course.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    course.targetGroup.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    course.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    course.targetGroup?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this course?')) {
-      deleteCourse(id);
+  function formatDate(date: string) {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  }
+  
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this course?')) return
+    try {
+      const token = localStorage.getItem("auth_token")
+      const response = await fetch(`${COURSES_URL}/${id}`, {
+        method: "DELETE",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      })
+      if (!response.ok) throw new Error(`Failed to delete course (${response.status})`)
+      setCourses((prev) => prev.filter((course) => course.id !== id))
+    } catch {
+      setError("Could not delete the course right now.")
     }
   };
 
@@ -100,20 +191,15 @@ export default function CoursesPage() {
                             {course.fileName ? (
                               <div className="flex items-center gap-1 text-primary">
                                 <FileText className="size-4" />
-                                <span className="truncate max-w-[120px]">{course.fileName}</span>
+                                <span className="truncate max-w-30">{course.fileName}</span>
                               </div>
                             ) : (
                               <span className="text-muted-foreground">No file</span>
                             )}
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{course.createdAt}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{formatDate(course.uploadedAt)}</TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Link href={`/professor/courses/${course.id}/edit`}>
-                                <Button variant="ghost" size="sm">
-                                  <Edit2 className="size-4" />
-                                </Button>
-                              </Link>
+                            <div className="flex items-center gap-2"> 
                               <Button
                                 variant="ghost"
                                 size="sm"
