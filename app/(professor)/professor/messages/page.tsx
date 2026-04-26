@@ -1,88 +1,82 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useCallback, useMemo, useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+  
+import { ChatView, type Message } from "../../components/chat-view"
+import { EmptyChat } from "../../components/empty-chat"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Settings, Edit, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
-import { ConversationList, type Conversation } from "../../components/conversation-list"
-import { ChatView, type Message } from "../../components/chat-view"
-import { EmptyChat } from "../../components/empty-chat"
+import { Conversation, ConversationList } from "../../components/conversation-list"
+import { getStoredAuthUser, getUserDisplayName } from "@/lib/auth-client"
 
-const CURRENT_USER_ID = "professor-1"
-const STORAGE_KEY = "professor_conversations"
-const MESSAGES_STORAGE_KEY = "professor_messages"
-
-const initialConversations: Conversation[] = [
-  {
-    id: "1",
-    name: "Group A1",
-    lastMessage: "Great work on the slides! Love it! Just one more thing...",
-    timestamp: "13:53",
-    online: true,
-  },
-  {
-    id: "2",
-    name: "Group B2",
-    lastMessage: "The new designs look amazing!",
-    timestamp: "12:30",
-    unread: 2,
-    online: true,
-  },
-]
-
-const initialMessages: Record<string, Message[]> = {
-  "1": [
-    {
-      id: "m1",
-      content: "Hey! Are you here?",
-      timestamp: "13:53",
-      senderId: "other",
-      senderName: "Group A1",
-    },
-    {
-      id: "m2",
-      content: "Yeah...",
-      timestamp: "13:53",
-      senderId: CURRENT_USER_ID,
-      senderName: "You",
-    },
-    {
-      id: "m3",
-      content: "Great work on the slides! Love it! Just one more thing...",
-      timestamp: "13:53",
-      senderId: "other",
-      senderName: "Group A1",
-    },
-  ],
-  "2": [
-    {
-      id: "m4",
-      content: "Hi! Just wanted to share some feedback on the latest iteration.",
-      timestamp: "12:15",
-      senderId: "other",
-      senderName: "Group B2",
-    },
-    {
-      id: "m5",
-      content: "Of course, I'd love to hear your thoughts!",
-      timestamp: "12:20",
-      senderId: CURRENT_USER_ID,
-      senderName: "You",
-    },
-    {
-      id: "m6",
-      content: "The new designs look amazing!",
-      timestamp: "12:30",
-      senderId: "other",
-      senderName: "Group B2",
-    },
-  ],
+type ApiThreadMessage = {
+  id?: string
+  content?: string
+  attachmentUrl?: string | null
+  senderId?: string
+  threadId?: string
+  createdAt?: string
+  sender?: {
+    id?: string
+    firstName?: string
+    lastName?: string
+    username?: string
+  } | null
 }
 
-export default function ProfessorMessagingPage() {
+type ApiThread = {
+  id?: string
+  title?: string
+  createdAt?: string
+  updatedAt?: string
+  receiverDisplay?: string
+  unreadCount?: number
+  messages?: ApiThreadMessage[]
+}
+
+const API_BASE =
+  (process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "http://localhost:3002")
+const THREADS_URL = `${API_BASE}/forum/threads`
+
+function asArray(payload: unknown): unknown[] {
+  if (Array.isArray(payload)) return payload
+  if (payload && typeof payload === "object") {
+    const record = payload as Record<string, unknown>
+    for (const key of ["data", "items", "results", "threads"]) {
+      if (Array.isArray(record[key])) return record[key] as unknown[]
+    }
+  }
+  return []
+}
+
+function formatTime(iso: string | undefined) {
+  if (!iso) return ""
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return ""
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+}
+
+function pickThreadDisplayName(thread: ApiThread) {
+  const receiver = String(thread.receiverDisplay ?? "").trim()
+  if (receiver) return receiver
+  const title = String(thread.title ?? "").trim()
+  if (title) return title
+  return "Conversation"
+}
+
+function pickThreadLastMessage(thread: ApiThread) {
+  const msgs = thread.messages ?? []
+  const last = msgs[msgs.length - 1]
+  const content = String(last?.content ?? "").trim()
+  if (content) return content
+  return "No messages yet"
+}
+
+export default function MessagingPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -90,73 +84,113 @@ export default function ProfessorMessagingPage() {
   const [messages, setMessages] = useState<Record<string, Message[]>>({})
   const [searchQuery, setSearchQuery] = useState("")
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [isHydrated, setIsHydrated] = useState(false)
-  const hasProcessedParams = useRef(false)
+  const [loading, setLoading] = useState(true)
+  const [sending, setSending] = useState(false)
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    const savedConversations = localStorage.getItem(STORAGE_KEY)
-    const savedMessages = localStorage.getItem(MESSAGES_STORAGE_KEY)
-
-    setConversations(
-      savedConversations ? JSON.parse(savedConversations) : initialConversations
-    )
-    setMessages(
-      savedMessages ? JSON.parse(savedMessages) : initialMessages
-    )
-    setSelectedConversationId("1")
-    setIsHydrated(true)
+  const currentUserId = useMemo(() => {
+    const user = getStoredAuthUser()
+    const id = (user && typeof user.id === "string" && user.id) || ""
+    return id || "current-user"
   }, [])
 
-  // Check for new conversation from URL params - only process once
+  const currentUserName = useMemo(() => {
+    const user = getStoredAuthUser()
+    return getUserDisplayName(user)
+  }, [])
+
+  const loadThreads = useCallback(
+    async ({ silent }: { silent?: boolean } = {}) => {
+      if (!silent) setLoading(true)
+      try {
+        const token = localStorage.getItem("auth_token")
+        const headers = token ? { Authorization: `Bearer ${token}` } : undefined
+        const response = await fetch(THREADS_URL, { headers })
+        if (!response.ok) throw new Error(`Threads failed (${response.status})`)
+
+        const payload = (await response.json()) as unknown
+        const threads = asArray(payload) as ApiThread[]
+
+        const nextConversations: Conversation[] = threads.map((thread, index) => ({
+          id: String(thread.id ?? `thread-${index}`),
+          name: pickThreadDisplayName(thread),
+          lastMessage: pickThreadLastMessage(thread),
+          timestamp: formatTime(thread.updatedAt ?? thread.createdAt) || "",
+          unread: Number(thread.unreadCount ?? 0) || 0,
+          online: false,
+        }))
+
+        const nextMessages: Record<string, Message[]> = {}
+        for (const thread of threads) {
+          const threadId = String(thread.id ?? "")
+          if (!threadId) continue
+
+          nextMessages[threadId] = (thread.messages ?? []).map((m, index) => ({
+            id: String(m.id ?? `${threadId}-m-${index}`),
+            content: String(m.content ?? ""),
+            timestamp: formatTime(m.createdAt) || "",
+            senderId: String(m.senderId ?? m.sender?.id ?? ""),
+            senderName:
+              String(m.sender?.username ?? "").trim() ||
+              `${String(m.sender?.firstName ?? "").trim()} ${String(m.sender?.lastName ?? "").trim()}`.trim() ||
+              "User",
+          }))
+        }
+
+        setConversations(nextConversations)
+        setMessages(nextMessages)
+        setSelectedConversationId((prev) => prev ?? nextConversations[0]?.id ?? null)
+      } catch {
+        if (!silent) {
+          setConversations([])
+          setMessages({})
+          setSelectedConversationId(null)
+        }
+      } finally {
+        if (!silent) setLoading(false)
+      }
+    },
+    []
+  )
+
   useEffect(() => {
-    if (!isHydrated || hasProcessedParams.current) return
+    void loadThreads()
+  }, [loadThreads])
+
+  // "Realtime" updates via polling + focus refresh
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      void loadThreads({ silent: true })
+    }, 4000)
+
+    const onFocus = () => {
+      void loadThreads({ silent: true })
+    }
+
+    window.addEventListener("focus", onFocus)
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener("focus", onFocus)
+    }
+  }, [loadThreads])
+
+  // Check for new conversation from URL params
+  useEffect(() => {
+    const threadId = searchParams.get("threadId")
+    if (threadId) {
+      setSelectedConversationId(threadId)
+      router.replace("/messages")
+      return
+    }
 
     const conversationName = searchParams.get("conversationName")
     const conversationMessage = searchParams.get("conversationMessage")
 
-    if (!conversationName || !conversationMessage) return
+    if (conversationName && conversationMessage) {
+      const newConversationId = `conv-${Date.now()}`
 
-    hasProcessedParams.current = true
-
-    // Load current state from localStorage to avoid stale state
-    const currentConversations = JSON.parse(
-      localStorage.getItem(STORAGE_KEY) || JSON.stringify(initialConversations)
-    )
-    const currentMessages = JSON.parse(
-      localStorage.getItem(MESSAGES_STORAGE_KEY) || JSON.stringify(initialMessages)
-    )
-
-    // Check if conversation already exists
-    const existingConversation = currentConversations.find(
-      (c: Conversation) => c.name.toLowerCase() === conversationName.toLowerCase()
-    )
-
-    let targetConversationId = ""
-    let updatedConversations = currentConversations
-    let updatedMessages = { ...currentMessages }
-
-    if (existingConversation) {
-      // Update existing conversation
-      targetConversationId = existingConversation.id
-      updatedConversations = currentConversations.map((c: Conversation) =>
-        c.id === existingConversation.id
-          ? {
-              ...c,
-              lastMessage: conversationMessage,
-              timestamp: new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-            }
-          : c
-      )
-    } else {
       // Create new conversation
-      targetConversationId = `conv-${Date.now()}`
-
       const newConversation: Conversation = {
-        id: targetConversationId,
+        id: newConversationId,
         name: conversationName,
         lastMessage: conversationMessage,
         timestamp: new Date().toLocaleTimeString([], {
@@ -166,38 +200,29 @@ export default function ProfessorMessagingPage() {
         online: false,
       }
 
-      updatedConversations = [newConversation, ...currentConversations]
+      // Create initial message
+      const newMessage: Message = {
+        id: `m-${Date.now()}`,
+        content: conversationMessage,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        senderId: currentUserId,
+        senderName: currentUserName,
+      }
+
+      setConversations((prev) => [newConversation, ...prev])
+      setMessages((prev) => ({
+        ...prev,
+        [newConversationId]: [newMessage],
+      }))
+      setSelectedConversationId(newConversationId)
+
+      // Clear search params after handling
+      router.replace("/messages")
     }
-
-    // Add message to only the target conversation
-    const newMessage: Message = {
-      id: `m-${Date.now()}`,
-      content: conversationMessage,
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      senderId: CURRENT_USER_ID,
-      senderName: "You",
-    }
-
-    updatedMessages[targetConversationId] = [
-      ...(updatedMessages[targetConversationId] || []),
-      newMessage,
-    ]
-
-    // Save to localStorage
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedConversations))
-    localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(updatedMessages))
-
-    // Update state
-    setConversations(updatedConversations)
-    setMessages(updatedMessages)
-    setSelectedConversationId(targetConversationId)
-
-    // Clear search params after handling
-    router.replace("/professor/messages")
-  }, [isHydrated, searchParams, router])
+  }, [searchParams, router])
 
   const selectedConversation = conversations.find(
     (c) => c.id === selectedConversationId
@@ -207,56 +232,68 @@ export default function ProfessorMessagingPage() {
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const handleSendMessage = useCallback((content: string) => {
+  const handleSendMessage = async (content: string) => {
     if (!selectedConversationId) return
 
-    const newMessage: Message = {
-      id: `m-${Date.now()}`,
+    const optimisticId = `optimistic-${Date.now()}`
+    const optimisticMessage: Message = {
+      id: optimisticId,
       content,
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      senderId: CURRENT_USER_ID,
-      senderName: "You",
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      senderId: currentUserId,
+      senderName: currentUserName,
     }
 
-    setMessages((prev) => {
-      const updated = {
-        ...prev,
-        [selectedConversationId]: [
-          ...(prev[selectedConversationId] || []),
-          newMessage,
-        ],
-      }
-      localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(updated))
-      return updated
-    })
-
-    // Update last message in conversation
-    setConversations((prev) => {
-      const updated = prev.map((c) =>
+    setMessages((prev) => ({
+      ...prev,
+      [selectedConversationId]: [...(prev[selectedConversationId] || []), optimisticMessage],
+    }))
+    setConversations((prev) =>
+      prev.map((c) =>
         c.id === selectedConversationId
-          ? { ...c, lastMessage: content, timestamp: newMessage.timestamp }
+          ? { ...c, lastMessage: content, timestamp: optimisticMessage.timestamp }
           : c
       )
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-      return updated
-    })
-  }, [selectedConversationId])
+    )
 
-  const handleSelectConversation = useCallback((id: string) => {
+    setSending(true)
+    try {
+      const token = localStorage.getItem("auth_token")
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      }
+      if (token) headers.Authorization = `Bearer ${token}`
+
+      const response = await fetch(`${API_BASE}/forum/threads/${selectedConversationId}/messages`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ content }),
+      })
+
+      if (!response.ok) throw new Error(`Send failed (${response.status})`)
+
+      // After successful send, refresh from server to keep UI in sync (realtime-ish).
+      await loadThreads({ silent: true })
+    } catch {
+      // Remove optimistic message on failure
+      setMessages((prev) => ({
+        ...prev,
+        [selectedConversationId]: (prev[selectedConversationId] || []).filter((m) => m.id !== optimisticId),
+      }))
+      // Best-effort refresh to restore correct lastMessage/timestamp
+      void loadThreads({ silent: true })
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const handleSelectConversation = (id: string) => {
     setSelectedConversationId(id)
     setIsSidebarOpen(false)
-    setConversations((prev) => {
-      const updated = prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c))
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-      return updated
-    })
-  }, [])
-
-  if (!isHydrated) {
-    return <div />
+    // Clear unread when selecting
+    setConversations((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c))
+    )
   }
 
   return (
@@ -280,7 +317,7 @@ export default function ProfessorMessagingPage() {
         <div className="flex items-center justify-between border-b border-border p-4">
           <h1 className="text-xl font-bold text-foreground">Messenger</h1>
           <div className="flex items-center gap-1">
-            <Link href="/professor/messages/new-message">
+            <Link href="/messages/new-message">
               <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
                 <Edit className="size-5" />
               </Button>
@@ -338,10 +375,14 @@ export default function ProfessorMessagingPage() {
 
         {/* Chat View or Empty State */}
         <div className="flex-1 overflow-hidden">
-          {selectedConversation ? (
+          {loading ? (
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              Loading conversations...
+            </div>
+          ) : selectedConversation ? (
             <ChatView
               messages={messages[selectedConversationId!] || []}
-              currentUserId={CURRENT_USER_ID}
+              currentUserId={currentUserId}
               recipientName={selectedConversation.name}
               recipientAvatar={selectedConversation.avatar}
               recipientOnline={selectedConversation.online}

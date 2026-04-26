@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
+import AppPageSkeleton from "../skeletons/AppPageSkeleton"
 
 type RoleGuardProps = {
   allowedRoles: string[]
@@ -57,7 +58,7 @@ export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
   }, [normalizedAllowedRoles, router])
 
   if (!isAuthorized) {
-    return <div className="p-4 text-sm text-muted-foreground">Checking access...</div>
+    return <div className="p-4 text-sm text-muted-foreground"><AppPageSkeleton/></div>
   }
 
   return <>{children}</>

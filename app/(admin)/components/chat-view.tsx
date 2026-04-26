@@ -107,7 +107,7 @@ export function ChatView({
                 className={cn("flex gap-3", isOwn && "flex-row-reverse")}
               >
                 {!isOwn && (
-                  <Avatar className="size-10 mt-6">
+                  <Avatar className="size-8 mt-1">
                     <AvatarImage src={message.senderAvatar} alt={message.senderName} />
                     <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
                       {message.senderName
@@ -124,9 +124,6 @@ export function ChatView({
                     isOwn && "items-end"
                   )}
                 >
-                  <span className="text-[12px] text-muted-foreground px-1">
-                    {message.senderName}
-                  </span>
                   <div
                     className={cn(
                       "rounded-2xl px-4 py-2.5",

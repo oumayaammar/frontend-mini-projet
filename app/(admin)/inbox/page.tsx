@@ -3,14 +3,14 @@
 import { useCallback, useMemo, useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
   
-import { ChatView, type Message } from "../../components/chat-view"
-import { EmptyChat } from "../../components/empty-chat"
+import { ChatView, type Message } from "../components/chat-view"
+import { EmptyChat } from "../components/empty-chat"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Settings, Edit, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
-import { Conversation, ConversationList } from "../../components/conversation-list"
+import { Conversation, ConversationList } from "../components/conversation-list"
 import { getStoredAuthUser, getUserDisplayName } from "@/lib/auth-client"
 
 type ApiThreadMessage = {
@@ -178,7 +178,7 @@ export default function MessagingPage() {
     const threadId = searchParams.get("threadId")
     if (threadId) {
       setSelectedConversationId(threadId)
-      router.replace("/messages")
+      router.replace("/inbox")
       return
     }
 
@@ -220,7 +220,7 @@ export default function MessagingPage() {
       setSelectedConversationId(newConversationId)
 
       // Clear search params after handling
-      router.replace("/messages")
+      router.replace("/inbox")
     }
   }, [searchParams, router])
 
@@ -317,7 +317,7 @@ export default function MessagingPage() {
         <div className="flex items-center justify-between border-b border-border p-4">
           <h1 className="text-xl font-bold text-foreground">Messenger</h1>
           <div className="flex items-center gap-1">
-            <Link href="/messages/new-message">
+            <Link href="/inbox/new-message">
               <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
                 <Edit className="size-5" />
               </Button>
