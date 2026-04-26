@@ -1,5 +1,5 @@
 "use client"
-import { Calendar, ChevronDown, ChevronUp, Home, Inbox, Newspaper, Plus, Projector, Search, Settings,User2 ,Users2 } from 'lucide-react';
+import { Calendar, ChevronUp, Home, Inbox, Newspaper, Projector, User2 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,17 +9,16 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 import Link from 'next/link';
+import { useMemo } from "react";
+import { useRouter } from "next/navigation";
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { clearAuthSession, getStoredAuthUser, getUserDisplayName } from "@/lib/auth-client";
 
 
 
@@ -42,6 +41,14 @@ const items = [
 ];
 
 const AppSideBar = () => {
+  const router = useRouter();
+  const displayName = useMemo(() => getUserDisplayName(getStoredAuthUser()), []);
+
+  function handleLogout() {
+    clearAuthSession();
+    router.push("/sign-in");
+  }
+
   return (
     <Sidebar collapsible="icon" >
       <SidebarHeader>
@@ -71,9 +78,6 @@ const AppSideBar = () => {
                     </Link>
                     
                   </SidebarMenuButton>
-                  {item.title === "Inbox" && (
-                    <SidebarMenuBadge>24</SidebarMenuBadge>
-                  )}
                 </SidebarMenuItem>
               ))} 
             </SidebarMenu>
@@ -121,13 +125,14 @@ const AppSideBar = () => {
             <DropdownMenu>  
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
-                  <User2/> Oumaya Ammar <ChevronUp className='ml-auto' /> 
+                  <User2/> {displayName} <ChevronUp className='ml-auto' /> 
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>Account</DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuItem>Logout</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/professor/user">Account</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>

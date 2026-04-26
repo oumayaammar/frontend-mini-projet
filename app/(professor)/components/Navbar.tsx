@@ -91,25 +91,7 @@ const Navbar = () => {
               <AvatarBadge className="bg-green-600 dark:bg-green-800" />
             </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" >
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem> 
-                <User className="w-[1.2rem] h-[1.2rem] mr-1" />
-                <p>Profile</p>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="w-[1.2rem] h-[1.2rem] mr-1"  />
-                <p>Settings</p>
-              </DropdownMenuItem>
-              <DropdownMenuItem variant='destructive'>
-                <LogOut className="w-[1.2rem] h-[1.2rem] mr-1" />
-                <p>Logout</p>
-              </DropdownMenuItem>
-
-            </DropdownMenuGroup>
-            
+          <DropdownMenuContent align="end" >            
           </DropdownMenuContent>
         </DropdownMenu>
         
