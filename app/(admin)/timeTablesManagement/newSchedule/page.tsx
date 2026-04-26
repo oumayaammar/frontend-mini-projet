@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react"
 import { FormEvent, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { Select } from "react-day-picker"
+import AppPageSkeleton from "@/components/skeletons/AppPageSkeleton"
 
 
 const API_BASE =
@@ -212,6 +213,8 @@ export default function NewSchedulePage() {
 
 
   return (
+    <>
+    {loading || loadingTeachers || loadingGroups ? <AppPageSkeleton/> : 
     <div className="min-h-screen bg-background p-4 lg:p-8">
       <div className="mx-auto max-w-3xl">
         <header className="mb-8 flex items-center gap-4">
@@ -409,5 +412,7 @@ export default function NewSchedulePage() {
         </form>
       </div>
     </div>
+    }
+    </>
   )
 }

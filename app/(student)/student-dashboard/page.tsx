@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CardSmall, type NewsItem } from '../components/newsCard';
 import { CourseItem } from '../components/CourseCard';
+import AppPageSkeleton from '@/components/skeletons/AppPageSkeleton';
 
 //News
 type ApiNews = {
@@ -295,6 +296,8 @@ export default function StudentDashboard() {
     setSelectedNewsId(null);
   };
   return (
+    <>
+    {loading ? <AppPageSkeleton/> : 
     <div className="min-h-screen bg-background p-4 md:p-8">
       {/* Header */}
       <div className="mb-8">
@@ -477,5 +480,7 @@ export default function StudentDashboard() {
         </div>
       </div>
     </div>
+    }
+    </>
   );
 }

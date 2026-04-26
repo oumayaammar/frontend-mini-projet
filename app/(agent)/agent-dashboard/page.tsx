@@ -6,6 +6,7 @@ import { ArrowRight, CalendarClock, Clock, Inbox, Newspaper, Pin } from "lucide-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import AppPageSkeleton from "@/components/skeletons/AppPageSkeleton"
 
 type ApiNews = {
   id?: string
@@ -155,6 +156,8 @@ export default function AgentDashboardPage() {
   )
 
   return (
+    <>
+    {loading ? <AppPageSkeleton/> : 
     <div className="min-h-screen bg-background p-5">
       <header className="mb-8">
         <h1 className="text-2xl font-bold text-foreground lg:text-3xl">Agent Dashboard</h1>
@@ -289,5 +292,7 @@ export default function AgentDashboardPage() {
         </Card>
       </div>
     </div>
+    }
+    </>
   )
 }

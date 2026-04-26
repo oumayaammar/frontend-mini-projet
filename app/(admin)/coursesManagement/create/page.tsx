@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FieldGroup, FieldLabel } from '@/components/ui/field';
+import AppPageSkeleton from '@/components/skeletons/AppPageSkeleton';
 
 
 interface FormData {
@@ -180,6 +181,8 @@ export default function CreateCoursePage() {
   }
 
   return (
+      <>
+    {loading ? <AppPageSkeleton/> : 
     <div className="flex flex-col h-screen bg-background">
       <div className="overflow-y-auto flex-1">
         <div className="p-5">
@@ -332,5 +335,7 @@ export default function CreateCoursePage() {
         </div>
       </div>
     </div>
+    }
+    </>
   );
 }

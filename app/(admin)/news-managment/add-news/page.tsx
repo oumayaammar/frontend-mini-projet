@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import AppPageSkeleton from "@/components/skeletons/AppPageSkeleton"
 
 const NEWS_URL =
   (process.env.NEXT_PUBLIC_API_URL
@@ -74,6 +75,8 @@ export default function EditorPage() {
   }
 
   return (
+    <>
+    {loading ? <AppPageSkeleton/> : 
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-4xl items-center gap-4 px-4 py-4">
@@ -161,5 +164,7 @@ export default function EditorPage() {
         </form>
       </main>
     </div>
+    }
+    </>
   )
 }

@@ -8,6 +8,7 @@ import { DeleteDialog } from "./Deletedialog";
 import { Button } from "@/components/ui/button";
 import { CirclePlus } from "lucide-react";
 import Link from "next/link";
+import AppPageSkeleton from "@/components/skeletons/AppPageSkeleton";
 
 type ApiNews = {
   id?: string;
@@ -185,6 +186,8 @@ export default function NewsPage() {
   );
 
   return (
+    <>
+    {loading ? <AppPageSkeleton/> : 
     <div className="container mx-auto py-10">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
@@ -219,5 +222,7 @@ export default function NewsPage() {
         news={deletingNews}
       />
     </div>
+    }
+    </>
   );
 }

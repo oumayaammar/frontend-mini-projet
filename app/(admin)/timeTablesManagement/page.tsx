@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { ArrowLeft, Users, UserSquare2 } from "lucide-react"
+import AppPageSkeleton from "@/components/skeletons/AppPageSkeleton"
 
 type GroupOption = {
   id: string
@@ -128,6 +129,8 @@ export default function TimeTablesManagementPage() {
   const list = useMemo(() => (mode === "group" ? groups : teachers), [groups, mode, teachers])
 
   return (
+    <>
+    {loading ? <AppPageSkeleton/> : 
     <div className="min-h-screen bg-background p-4 lg:p-8">
       <div className="mx-auto max-w-5xl">
         <header className="mb-8 flex items-end gap-4 justify-between">
@@ -212,5 +215,7 @@ export default function TimeTablesManagementPage() {
         ) : null}
       </div>
     </div>
+    }
+    </>
   )
 }

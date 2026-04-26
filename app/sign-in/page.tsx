@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import AuthPageSkeleton from "@/components/skeletons/AuthPageSkeleton";
 
 const LOGIN_URL =
   (process.env.NEXT_PUBLIC_API_URL
@@ -87,6 +88,8 @@ export default function SignInPage() {
   }
 
   return (
+    <>
+    {loading ? <AuthPageSkeleton/> : 
     <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
       <section className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
         <h1 className="text-2xl font-bold text-slate-900">Sign In</h1>
@@ -152,5 +155,7 @@ export default function SignInPage() {
         </p>
       </section>
     </main>
+    }
+    </>
   );
 }

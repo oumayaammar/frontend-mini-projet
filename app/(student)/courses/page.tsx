@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { CardImage, type CourseItem } from "../components/CourseCard"
+import AppPageSkeleton from "@/components/skeletons/AppPageSkeleton"
 
 
 type ApiCourse = {
@@ -78,6 +79,8 @@ export default function NewsPage() {
     }, [])
 
     return (
+        <>
+        {loading ? <AppPageSkeleton/> : 
         <div className="p-5">
             <header className="mb-8 flex items-center gap-4">
                 <Link
@@ -103,5 +106,7 @@ export default function NewsPage() {
                 ))}
             </div>
         </div>
+        }
+        </>
     )
 }

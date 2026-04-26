@@ -13,6 +13,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import AppPageSkeleton from "@/components/skeletons/AppPageSkeleton";
 
 type ApiUser = { id?: string; _id?: string }
 type ApiCourse = { id?: string; _id?: string }
@@ -178,6 +179,8 @@ export default function AdminDashboard() {
   )
 
   return (
+    <>
+    {loading ? <AppPageSkeleton/> : 
     <div className="min-h-screen bg-background p-5">
       <header className="mb-8">
         <h1 className="text-2xl font-bold text-foreground lg:text-3xl">Admin Dashboard</h1>
@@ -319,5 +322,7 @@ export default function AdminDashboard() {
         </Card>
       </div>
     </div>
+    }
+    </>
   )
 }

@@ -6,6 +6,7 @@ import { ArrowRight, Plus, Users, BookOpen, Clock, Newspaper, Trash2 } from 'luc
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import AppPageSkeleton from '@/components/skeletons/AppPageSkeleton';
 
 interface NewsItem {
   id: string;
@@ -294,6 +295,8 @@ export default function ProfessorDashboard() {
     setSelectedNewsId(null);
   };
   return (
+    <>
+    {loading ? <AppPageSkeleton/> : 
     <div className="min-h-screen bg-background p-5">
       {/* Header */}
       <header className="mb-8 flex items-center gap-4">
@@ -475,5 +478,7 @@ export default function ProfessorDashboard() {
         </div>
       </div>
     </div>
+    }
+    </>
   );
 }

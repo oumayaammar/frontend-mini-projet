@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import AuthPageSkeleton from "@/components/skeletons/AuthPageSkeleton";
 
 type UserType = "admin" | "student" | "teacher" | "agent" | "";
 
@@ -218,6 +219,8 @@ export default function SignUpPage() {
   };
 
   return (
+    <>
+    {loading ? <AuthPageSkeleton/> : 
     <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
       <section className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
         <h1 className="text-2xl font-bold text-slate-900">Sign Up</h1>
@@ -481,5 +484,7 @@ export default function SignUpPage() {
         </p>
       </section>
     </main>
+    }
+    </>
   );
 }

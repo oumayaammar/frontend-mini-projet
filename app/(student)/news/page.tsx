@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { CardSmall, type NewsItem } from '../components/newsCard';
+import AppPageSkeleton from '@/components/skeletons/AppPageSkeleton';
 
 type ApiNews = {
   id: string;
@@ -95,6 +96,8 @@ export default function NewsPage() {
   };
 
   return (
+    <>
+    {loading ? <AppPageSkeleton/> : 
     <div className="min-h-screen bg-background">
       {!selectedNewsId ? (
         // News List View
@@ -184,5 +187,7 @@ export default function NewsPage() {
         </div>
       )}
     </div>
+    }
+    </>
   );
 }

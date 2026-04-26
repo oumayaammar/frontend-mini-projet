@@ -1,3 +1,4 @@
+import AuthPageSkeleton from "@/components/skeletons/AuthPageSkeleton";
 
 
 
@@ -5,6 +6,8 @@
 
 export default function Home() {
   return (
-<div></div>
+<div>
+  <AuthPageSkeleton/>
+</div>
   );
 }

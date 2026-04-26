@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import AppPageSkeleton from '@/components/skeletons/AppPageSkeleton';
 
 type ApiCourse = {
   id: string
@@ -118,6 +119,8 @@ export default function CoursesPage() {
   };
 
   return (
+    <>
+    {loading ? <AppPageSkeleton/> : 
     <div className="flex flex-col h-screen bg-background">
       <div className="overflow-y-auto flex-1">
         <div className="p-5">
@@ -221,5 +224,7 @@ export default function CoursesPage() {
         </div>
       </div>
     </div>
+    }
+    </>
   );
 }

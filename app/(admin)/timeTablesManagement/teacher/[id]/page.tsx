@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
+import AppPageSkeleton from "@/components/skeletons/AppPageSkeleton"
 
 type Teacher = {
   firstName?: string
@@ -112,6 +113,8 @@ export default function TeacherTimetablePage() {
   }, [schedule])
 
   return (
+    <>
+    {loading ? <AppPageSkeleton/> : 
     <div className="min-h-screen bg-background p-4 lg:p-8">
       <div className="mx-auto max-w-6xl">
         <header className="mb-8 flex items-end gap-4 justify-between">
@@ -195,5 +198,7 @@ export default function TeacherTimetablePage() {
         ) : null}
       </div>
     </div>
+    }
+    </>
   )
 }
