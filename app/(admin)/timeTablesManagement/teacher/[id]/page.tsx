@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
+import { ArrowLeft } from "lucide-react"
 
 type Teacher = {
   firstName?: string
@@ -16,6 +17,8 @@ type ScheduleItem = {
   dayOfWeek: number
   startTime: string
   endTime: string
+  studentGroup: string
+  semester?: string
   type: string
   teacher?: Teacher
 }
@@ -25,10 +28,8 @@ type DaySchedule = {
   entries: ScheduleItem[]
 }
 
-const SCHEDULE_URL =
-  (process.env.NEXT_PUBLIC_API_URL
-    ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")}/schedule`
-    : null) ?? "http://localhost:3002/schedule"
+const API_BASE =
+  (process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "http://localhost:3002")
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
@@ -51,23 +52,23 @@ function getSessionLabel(startTime: string) {
   return slotMap[startTime] ?? "-"
 }
 
-function getTeacherName(teacher?: Teacher) {
-  const fullName = [teacher?.firstName, teacher?.lastName].filter(Boolean).join(" ")
-  return fullName || "No teacher"
-}
+export default function TeacherTimetablePage() {
+  const params = useParams<{ id: string }>()
+  const teacherId = params?.id
 
-export default function TimetablePage() {
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [schedule, setSchedule] = useState<ScheduleItem[]>([])
 
   useEffect(() => {
+    if (!teacherId) return
+
     let isMounted = true
 
-    const fetchSchedule = async () => {
+    async function fetchSchedule() {
       try {
         const token = localStorage.getItem("auth_token")
-        const response = await fetch(SCHEDULE_URL, {
+        const response = await fetch(`${API_BASE}/schedule/teacher/${teacherId}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         })
 
@@ -80,18 +81,18 @@ export default function TimetablePage() {
         setSchedule(Array.isArray(data) ? data : [])
       } catch {
         if (!isMounted) return
-        setError("Could not load your schedule right now.")
+        setError("Could not load this teacher timetable.")
       } finally {
         if (isMounted) setLoading(false)
       }
     }
 
-    fetchSchedule()
+    void fetchSchedule()
 
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [teacherId])
 
   const groupedSchedule = useMemo<DaySchedule[]>(() => {
     const grouped = new Map<string, ScheduleItem[]>()
@@ -113,24 +114,36 @@ export default function TimetablePage() {
   return (
     <div className="min-h-screen bg-background p-4 lg:p-8">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-8 flex items-center gap-4">
-          <Link
-            href="/"
-            className="flex size-10 items-center justify-center rounded-full bg-card text-foreground transition-colors hover:bg-secondary"
-          >
-            <ArrowLeft className="size-5" />
-          </Link>
+        <header className="mb-8 flex items-end gap-4 justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground lg:text-3xl">Class Timetable</h1>
-            <p className="text-sm text-muted-foreground">Academic Year 2025-2026</p>
+            <Link
+              href="/timeTablesManagement"
+              className="flex size-10 items-center justify-center rounded-full bg-card text-foreground transition-colors hover:bg-secondary"
+            >
+              <ArrowLeft className="size-5" />
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground lg:text-3xl">Teacher Timetable</h1>
+              <p className="text-sm text-muted-foreground">Teacher</p>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <Link
+              href={`/timeTablesManagement/teacher/${teacherId}/newSchedule`}
+              className="inline-flex rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              Add New Schedule
+            </Link>
           </div>
         </header>
+
 
         {loading ? <p className="text-sm text-muted-foreground">Loading schedule...</p> : null}
         {error ? <p className="text-sm text-red-500">{error}</p> : null}
 
         {!loading && !error && groupedSchedule.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No schedule found.</p>
+          <p className="text-sm text-muted-foreground">No schedule found for this teacher.</p>
         ) : null}
 
         {!loading && !error ? (
@@ -159,7 +172,7 @@ export default function TimetablePage() {
                           {entry.subject}
                         </div>
                         <div className="self-start rounded-md px-2 pb-1 text-xs font-light text-center">
-                          ({getTeacherName(entry.teacher)})
+                          ({entry.studentGroup ?? "No group"})
                         </div>
                       </div>
                       <div className="flex flex-col sm:flex-row">
@@ -168,6 +181,9 @@ export default function TimetablePage() {
                         </div>
                         <div className="self-center rounded-md px-2 pb-1 text-xs font-medium">
                           {entry.type}
+                        </div>
+                        <div className="self-center rounded-md px-2 pb-1 text-xs font-medium">
+                          {entry.semester ?? "-"}
                         </div>
                       </div>
                     </div>

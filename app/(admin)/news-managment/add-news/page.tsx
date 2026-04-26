@@ -1,113 +1,164 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { TextEditor } from "../../components/TextEditor"
-import { ArrowLeft, Save, FileText, Eye, EyeOff } from "lucide-react"
+import { FormEvent, useState } from "react"
+import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import {
-  CalendarDays,
-  MapPin,
-  Clock,
-  Users,
-  Star,
-  CheckCircle2,
-  BookOpen,
-} from "lucide-react"
+
+const NEWS_URL =
+  (process.env.NEXT_PUBLIC_API_URL
+    ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")}/news`
+    : null) ?? "http://localhost:3002/news"
 
 export default function EditorPage() {
+  const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
-  const [lastSaved, setLastSaved] = useState<Date | null>(null)
-  const [showPreview, setShowPreview] = useState(false)
+  const [imageUrl, setImageUrl] = useState("")
+  const [targetGroup, setTargetGroup] = useState("")
+  const [isPinned, setIsPinned] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
-  const handleContentChange = useCallback((newContent: string) => {
-    setContent(newContent + " ")
-  }, [])
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setLoading(true)
+    setError(null)
+    setSuccess(null)
 
-  const handleSave = useCallback(() => {
-    // Simulate saving - in a real app, this would save to a database or API
-    setLastSaved(new Date())
-    // You could also store in localStorage for persistence
-    localStorage.setItem("editor-content", content)
-  }, [content])
+    try {
+      const token = localStorage.getItem("auth_token")
+      const response = await fetch(NEWS_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          title,
+          content,
+          imageUrl,
+          isPinned,
+          targetGroup,
+        }),
+      })
 
-  const handleLoadSaved = useCallback(() => {
-    const saved = localStorage.getItem("editor-content")
-    if (saved) {
-      setContent(saved)
+      const text = await response.text()
+      let payload: unknown = null
+      if (text) {
+        try {
+          payload = JSON.parse(text) as unknown
+        } catch {
+          payload = null
+        }
+      }
+
+      if (!response.ok) {
+        if (payload && typeof payload === "object" && "message" in payload) {
+          throw new Error(String((payload as { message: unknown }).message))
+        }
+        throw new Error(`Could not create news (${response.status})`)
+      }
+
+      setSuccess("News created successfully.")
+      setTitle("")
+      setContent("")
+      setImageUrl("")
+      setTargetGroup("")
+      setIsPinned(false)
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "Could not create news.")
+    } finally {
+      setLoading(false)
     }
-  }, [])
+  }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-card border-b border-border">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="flex items-center justify-center size-10 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="size-5" />
-            </Link>
-            <div>
-              <h1 className="text-xl font-semibold text-foreground">Text Editor</h1>
-              <p className="text-sm text-muted-foreground">
-                {lastSaved
-                  ? `Last saved: ${lastSaved.toLocaleTimeString()}`
-                  : "Create and format your content"
-                }
-              </p>
-            </div>
-            <div>
-                <Link href="">
-                  <button
-                    onClick={handleSave}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
-                  >
-                    <Save className="size-4" />
-                    Save
-                  </button>
-                </Link>
-            </div>
+      <header className="border-b border-border bg-card">
+        <div className="mx-auto flex max-w-4xl items-center gap-4 px-4 py-4">
+          <Link
+            href="/news-managment"
+            className="flex size-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <ArrowLeft className="size-5" />
+          </Link>
+          <div>
+            <h1 className="text-xl font-semibold text-foreground">Add News</h1>
+            <p className="text-sm text-muted-foreground">Publish a new announcement to `/news`.</p>
           </div>
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="max-w-5xl mx-auto px-4 py-8">
-        <div className={showPreview ? "grid grid-cols-1 lg:grid-cols-2 gap-6" : ""}>
-          <TextEditor
-            placeholder="Start writing your content here..."
-            className="min-h-[600px]"
-            initialContent={content}
-            onChange={handleContentChange}
-          />
+      <main className="mx-auto max-w-4xl px-4 py-8">
+        <form onSubmit={handleSubmit} className="grid gap-4 rounded-xl border border-border bg-card p-5">
+          {error ? <p className="rounded bg-red-500/10 px-3 py-2 text-sm text-red-600">{error}</p> : null}
+          {success ? (
+            <p className="rounded bg-green-500/10 px-3 py-2 text-sm text-green-700">{success}</p>
+          ) : null}
 
-          {showPreview && (
-            <div className="flex flex-col rounded-xl border border-border bg-card overflow-hidden">
-              <div className="px-4 py-3 border-b border-border bg-muted/30">
-                <h3 className="text-sm font-medium text-foreground">HTML Preview</h3>
-              </div>
-              <div
-                className="flex-1 min-h-[300px] p-4 overflow-y-auto prose prose-sm max-w-none
-                  [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:text-foreground
-                  [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mb-3 [&_h2]:text-foreground
-                  [&_h3]:text-lg [&_h3]:font-medium [&_h3]:mb-2 [&_h3]:text-foreground
-                  [&_p]:mb-2 [&_p]:leading-relaxed [&_p]:text-foreground
-                  [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-2
-                  [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-2
-                  [&_li]:mb-1 [&_li]:text-foreground
-                  [&_blockquote]:border-l-4 [&_blockquote]:border-primary [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:my-4
-                  [&_pre]:bg-muted [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:font-mono [&_pre]:text-sm [&_pre]:overflow-x-auto [&_pre]:my-4
-                  [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2
-                  [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-4
-                  [&_hr]:border-border [&_hr]:my-6"
-                dangerouslySetInnerHTML={{ __html: content || "<p class='text-muted-foreground'>Start typing to see preview...</p>" }}
+          <label className="grid gap-1 text-sm">
+            Title
+            <input
+              required
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              className="rounded-md border border-border bg-background px-3 py-2"
+              placeholder="Fermeture de la bibliothèque"
+            />
+          </label>
+
+          <label className="grid gap-1 text-sm">
+            Content
+            <textarea
+              required
+              value={content}
+              onChange={(event) => setContent(event.target.value)}
+              className="min-h-36 rounded-md border border-border bg-background px-3 py-2"
+              placeholder="La bibliothèque sera fermée le 15 mars..."
+            />
+          </label>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="grid gap-1 text-sm">
+              Image URL
+              <input
+                value={imageUrl}
+                onChange={(event) => setImageUrl(event.target.value)}
+                className="rounded-md border border-border bg-background px-3 py-2"
+                placeholder="https://..."
               />
-            </div>
-          )}
-        </div>
+            </label>
+            <label className="grid gap-1 text-sm">
+              Target Group
+              <input
+                required
+                value={targetGroup}
+                onChange={(event) => setTargetGroup(event.target.value)}
+                className="rounded-md border border-border bg-background px-3 py-2"
+                placeholder="ING_A1_G1"
+              />
+            </label>
+          </div>
+
+          <label className="inline-flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={isPinned}
+              onChange={(event) => setIsPinned(event.target.checked)}
+            />
+            Pin this news
+          </label>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" asChild>
+              <Link href="/news-managment">Cancel</Link>
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Saving..." : "Create News"}
+            </Button>
+          </div>
+        </form>
       </main>
     </div>
   )

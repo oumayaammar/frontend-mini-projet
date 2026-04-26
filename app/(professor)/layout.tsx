@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/ui/providers/ThemeProvider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
 import { CoursesProvider } from "@/lib/courses-context";
+import RoleGuard from "@/components/auth/RoleGuard";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -37,13 +38,15 @@ export  default  async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AppSideBar />
-           <CoursesProvider>
-          <main className="w-full">
-            <Navbar/>
-            <div className="px-4">{children}</div>
-          </main>
-          </CoursesProvider>
+          <RoleGuard allowedRoles={["teacher", "professor"]}>
+            <AppSideBar />
+            <CoursesProvider>
+              <main className="w-full">
+                <Navbar/>
+                <div className="px-4">{children}</div>
+              </main>
+            </CoursesProvider>
+          </RoleGuard>
       </ThemeProvider>
     </SidebarProvider>
   );

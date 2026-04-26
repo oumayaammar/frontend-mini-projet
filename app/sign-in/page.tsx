@@ -15,7 +15,8 @@ function getRedirectPath(data: Record<string, unknown>): string {
   const role = roleRaw?.toLowerCase() ?? "";
 
   if (role.includes("admin")) return "/admin-dashboard";
-  if (role.includes("teacher") || role.includes("professor") || role === "agent") {
+  if (role === "agent") return "/agent-dashboard";
+  if (role.includes("teacher") || role.includes("professor")) {
     return "/professor-dashboard";
   }
   if (role.includes("student")) return "/student-dashboard";

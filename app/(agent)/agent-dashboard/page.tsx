@@ -2,29 +2,22 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import {
-  ArrowRight,
-  BookOpen,
-  CalendarClock,
-  Clock,
-  Newspaper,
-  Users,
-} from "lucide-react"
+import { ArrowRight, CalendarClock, Clock, Inbox, Newspaper, Pin } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-type ApiUser = { id?: string; _id?: string }
-type ApiCourse = { id?: string; _id?: string }
 type ApiNews = {
   id?: string
   _id?: string
   title?: string
   content?: string
+  imageUrl?: string | null
   isPinned?: boolean
-  targetGroup?: string
+  targetGroup?: string | null
   createdAt?: string
 }
+
 type ApiSchedule = {
   id?: string
   subject?: string
@@ -38,8 +31,8 @@ type DashboardNewsItem = {
   id: string
   title: string
   content: string
-  targetGroup: string
   isPinned: boolean
+  targetGroup: string
   createdAt: string
 }
 
@@ -54,18 +47,14 @@ type DashboardScheduleItem = {
 
 const API_BASE =
   (process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "http://localhost:3002")
-const USERS_URL = `${API_BASE}/users`
-const COURSES_URL = `${API_BASE}/courses`
 const NEWS_URL = `${API_BASE}/news`
 const SCHEDULE_URL = `${API_BASE}/schedule`
-
-const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
 function asArray(payload: unknown): unknown[] {
   if (Array.isArray(payload)) return payload
   if (payload && typeof payload === "object") {
     const record = payload as Record<string, unknown>
-    for (const key of ["data", "items", "results", "users", "courses", "news", "schedule"]) {
+    for (const key of ["data", "items", "results", "news", "schedule"]) {
       if (Array.isArray(record[key])) return record[key] as unknown[]
     }
   }
@@ -77,9 +66,7 @@ function toMinutes(time: string) {
   return hours * 60 + minutes
 }
 
-export default function AdminDashboard() {
-  const [usersCount, setUsersCount] = useState(0)
-  const [coursesCount, setCoursesCount] = useState(0)
+export default function AgentDashboardPage() {
   const [newsItems, setNewsItems] = useState<DashboardNewsItem[]>([])
   const [todaySchedule, setTodaySchedule] = useState<DashboardScheduleItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -96,35 +83,27 @@ export default function AdminDashboard() {
         const token = localStorage.getItem("auth_token")
         const headers = token ? { Authorization: `Bearer ${token}` } : undefined
 
-        const [usersResponse, coursesResponse, newsResponse, scheduleResponse] = await Promise.all([
-          fetch(USERS_URL, { headers }),
-          fetch(COURSES_URL, { headers }),
+        const [newsResponse, scheduleResponse] = await Promise.all([
           fetch(NEWS_URL, { headers }),
           fetch(SCHEDULE_URL, { headers }),
         ])
 
-        if (!usersResponse.ok) throw new Error(`Users failed (${usersResponse.status})`)
-        if (!coursesResponse.ok) throw new Error(`Courses failed (${coursesResponse.status})`)
         if (!newsResponse.ok) throw new Error(`News failed (${newsResponse.status})`)
         if (!scheduleResponse.ok) throw new Error(`Schedule failed (${scheduleResponse.status})`)
 
-        const usersPayload = (await usersResponse.json()) as unknown
-        const coursesPayload = (await coursesResponse.json()) as unknown
         const newsPayload = (await newsResponse.json()) as unknown
         const schedulePayload = (await scheduleResponse.json()) as unknown
 
-        const users = asArray(usersPayload) as ApiUser[]
-        const courses = asArray(coursesPayload) as ApiCourse[]
         const news = (asArray(newsPayload) as ApiNews[]).map((item, index) => ({
           id: String(item.id ?? item._id ?? `news-${index}`),
           title: String(item.title ?? ""),
           content: String(item.content ?? ""),
-          targetGroup: String(item.targetGroup ?? "General"),
           isPinned: Boolean(item.isPinned),
+          targetGroup: String(item.targetGroup ?? "General"),
           createdAt: String(item.createdAt ?? new Date().toISOString()),
         }))
 
-        const schedules = (asArray(schedulePayload) as ApiSchedule[]).map((item, index) => ({
+        const schedule = (asArray(schedulePayload) as ApiSchedule[]).map((item, index) => ({
           id: String(item.id ?? `schedule-${index}`),
           subject: String(item.subject ?? ""),
           room: String(item.room ?? ""),
@@ -134,13 +113,11 @@ export default function AdminDashboard() {
         }))
 
         const today = new Date().getDay()
-        const todayRows = schedules
+        const todayRows = schedule
           .filter((item) => item.dayOfWeek === today)
           .sort((a, b) => toMinutes(a.startTime) - toMinutes(b.startTime))
 
         if (!isMounted) return
-        setUsersCount(users.length)
-        setCoursesCount(courses.length)
         setNewsItems(news)
         setTodaySchedule(todayRows)
       } catch {
@@ -180,9 +157,9 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-background p-5">
       <header className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground lg:text-3xl">Admin Dashboard</h1>
+        <h1 className="text-2xl font-bold text-foreground lg:text-3xl">Agent Dashboard</h1>
         <p className="text-sm text-muted-foreground">
-          Monitor users, courses, timetables and announcements.
+          Quick view of inbox, announcements and today&apos;s schedule.
         </p>
       </header>
 
@@ -193,14 +170,14 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Users className="size-4 text-primary" />
-              Users
+              <Inbox className="size-4 text-primary" />
+              Inbox
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{usersCount}</p>
-            <Link href="/users" className="mt-2 inline-flex text-sm text-primary hover:underline">
-              Manage users
+            <p className="text-2xl font-bold">Messages</p>
+            <Link href="/agent/inbox" className="mt-2 inline-flex text-sm text-primary hover:underline">
+              Open inbox
             </Link>
           </CardContent>
         </Card>
@@ -208,14 +185,14 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <BookOpen className="size-4 text-primary" />
-              Courses
+              <Newspaper className="size-4 text-primary" />
+              News
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{coursesCount}</p>
-            <Link href="/coursesManagement" className="mt-2 inline-flex text-sm text-primary hover:underline">
-              Manage courses
+            <p className="text-2xl font-bold">{newsItems.length}</p>
+            <Link href="/agent/news" className="mt-2 inline-flex text-sm text-primary hover:underline">
+              Read all news
             </Link>
           </CardContent>
         </Card>
@@ -224,17 +201,12 @@ export default function AdminDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
               <CalendarClock className="size-4 text-primary" />
-              Timetables
+              Today
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{todaySchedule.length} today</p>
-            <Link
-              href="/timeTablesManagement"
-              className="mt-2 inline-flex text-sm text-primary hover:underline"
-            >
-              Manage timetables
-            </Link>
+            <p className="text-2xl font-bold">{todaySchedule.length} events</p>
+            <p className="mt-2 text-xs text-muted-foreground">{todayLabel}</p>
           </CardContent>
         </Card>
       </div>
@@ -242,13 +214,11 @@ export default function AdminDashboard() {
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Clock className="size-5 text-primary" />
-                <CardTitle>Today&apos;s Schedule</CardTitle>
-              </div>
-              <CardDescription>{todayLabel}</CardDescription>
+            <div className="flex items-center gap-2">
+              <Clock className="size-5 text-primary" />
+              <CardTitle>Today&apos;s Schedule</CardTitle>
             </div>
+            <CardDescription>{todayLabel}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -274,7 +244,7 @@ export default function AdminDashboard() {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center text-muted-foreground">
-                        No classes scheduled for today.
+                        No events scheduled for today.
                       </TableCell>
                     </TableRow>
                   )}
@@ -288,16 +258,16 @@ export default function AdminDashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Newspaper className="size-5 text-primary" />
+                <Pin className="size-5 text-primary" />
                 <CardTitle>Pinned News</CardTitle>
               </div>
-              <Link href="/news-managment">
+              <Link href="/agent/news">
                 <Button variant="ghost" size="sm" className="gap-1">
                   View <ArrowRight className="size-4" />
                 </Button>
               </Link>
             </div>
-            <CardDescription>Latest announcements for groups.</CardDescription>
+            <CardDescription>Important announcements.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">

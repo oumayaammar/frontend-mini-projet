@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar";
 import { ThemeProvider } from "@/components/ui/providers/ThemeProvider";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
+import RoleGuard from "@/components/auth/RoleGuard";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -36,11 +37,13 @@ export  default  async function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              <AppSideBar />
-              <main className="w-full">
-                <Navbar/>
-                <div className="px-4">{children}</div>
-              </main>
+              <RoleGuard allowedRoles={["admin"]}>
+                <AppSideBar />
+                <main className="w-full">
+                  <Navbar/>
+                  <div className="px-4">{children}</div>
+                </main>
+              </RoleGuard>
               
           </ThemeProvider>
         </SidebarProvider>

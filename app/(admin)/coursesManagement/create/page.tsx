@@ -173,7 +173,7 @@ export default function CreateCoursePage() {
         throw new Error(`Failed to create course (${response.status})`)
       }
 
-      router.push('/professor/courses')
+      router.push('/coursesManagement')
     } catch {
       setError("Could not create the course right now.")
     }
@@ -186,7 +186,7 @@ export default function CreateCoursePage() {
           {/* Header */}
           <header className="mb-8 flex items-center gap-4">
             <Link
-              href="/professor/courses"
+              href="/coursesManagement"
               className="flex size-10 items-center justify-center rounded-full bg-card text-foreground transition-colors hover:bg-secondary"
             >
               <ArrowLeft className="size-5" />
@@ -320,7 +320,7 @@ export default function CreateCoursePage() {
                   <Button type="submit" className="flex-1">
                     Create Course
                   </Button>
-                  <Link href="/professor/courses" className="flex-1">
+                  <Link href="/coursesManagement" className="flex-1">
                     <Button type="button" variant="outline" className="w-full">
                       Cancel
                     </Button>

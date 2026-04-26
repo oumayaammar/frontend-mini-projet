@@ -15,7 +15,10 @@ import {
 export type News = {
   id: string;
   title: string;
-  description: string;
+  content: string;
+  imageUrl: string;
+  isPinned: boolean;
+  targetGroup: string;
   createdAt: string;
 };
 
@@ -30,12 +33,23 @@ export const createColumns = (
     header: "Title",
   },
   {
-    accessorKey: "description",
-    header: "Description",
+    accessorKey: "content",
+    header: "Content",
     cell: ({ row }) => (
       <span className="line-clamp-1 max-w-[300px] block">
-        {row.getValue("description")}
+        {row.getValue("content")}
       </span>
+    ),
+  },
+  {
+    accessorKey: "targetGroup",
+    header: "Group",
+  },
+  {
+    accessorKey: "isPinned",
+    header: "Pinned",
+    cell: ({ row }) => (
+      <span>{row.getValue("isPinned") ? "Yes" : "No"}</span>
     ),
   },
   {

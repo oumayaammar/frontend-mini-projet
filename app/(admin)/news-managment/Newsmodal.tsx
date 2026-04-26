@@ -23,22 +23,31 @@ interface NewsModalProps {
 
 export function NewsModal({ open, onClose, onSave, initial }: NewsModalProps) {
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [content, setContent] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [targetGroup, setTargetGroup] = useState("");
+  const [isPinned, setIsPinned] = useState(false);
 
   // Populate fields when editing
   useEffect(() => {
     if (initial) {
       setTitle(initial.title);
-      setDescription(initial.description);
+      setContent(initial.content);
+      setImageUrl(initial.imageUrl);
+      setTargetGroup(initial.targetGroup);
+      setIsPinned(initial.isPinned);
     } else {
       setTitle("");
-      setDescription("");
+      setContent("");
+      setImageUrl("");
+      setTargetGroup("");
+      setIsPinned(false);
     }
   }, [initial, open]);
 
   const handleSave = () => {
-    if (!title.trim() || !description.trim()) return;
-    onSave({ title, description });
+    if (!title.trim() || !content.trim()) return;
+    onSave({ title, content, imageUrl, isPinned, targetGroup });
     onClose();
   };
 
@@ -61,15 +70,44 @@ export function NewsModal({ open, onClose, onSave, initial }: NewsModalProps) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="content">Content</Label>
             <Textarea
-              id="description"
-              placeholder="Enter description..."
+              id="content"
+              placeholder="Enter content..."
               rows={4}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
             />
           </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="imageUrl">Image URL</Label>
+            <Input
+              id="imageUrl"
+              placeholder="https://..."
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="targetGroup">Target Group</Label>
+            <Input
+              id="targetGroup"
+              placeholder="ING_A1_G1"
+              value={targetGroup}
+              onChange={(e) => setTargetGroup(e.target.value)}
+            />
+          </div>
+
+          <label className="inline-flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={isPinned}
+              onChange={(e) => setIsPinned(e.target.checked)}
+            />
+            Pin this news
+          </label>
         </div>
 
         <DialogFooter>

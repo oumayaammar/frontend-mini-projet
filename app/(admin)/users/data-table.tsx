@@ -37,10 +37,53 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
 }
 
+type User = {
+  username : string
+  firstName : string
+  lastName : string
+  email : string
+  role : string 
+  agentType : string
+  studentGroup : string
+  department : string
+}
+
+const API_BASE =
+  (process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "http://localhost:3002")
+
+const USERS_URL = `${API_BASE}/users`
+
+function asArray(payload: unknown): unknown[] {
+  if (Array.isArray(payload)) return payload
+  if (payload && typeof payload === "object") {
+    const record = payload as Record<string, unknown>
+    for (const key of ["data", "items", "results", "users"]) {
+      if (Array.isArray(record[key])) return record[key] as unknown[]
+    }
+  }
+  return []
+}
+
+function normalizeUsers(payload: unknown): User[] {
+  return asArray(payload)
+    .filter((item): item is Record<string, unknown> => !!item && typeof item === "object")
+    .map((row) => ({
+      username: String(row.username ?? ""),
+      firstName: String(row.firstName ?? ""),
+      lastName: String(row.lastName ?? ""),
+      email: String(row.email ?? ""),
+      role: String(row.role ?? ""),
+      agentType: String(row.agentType ?? ""),
+      studentGroup: String(row.studentGroup ?? ""),
+      department: String(row.department ?? ""),
+    }))
+}
+
 export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
+  const [usersData, setUsersData] = React.useState<User[]>([])
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -49,8 +92,38 @@ export function DataTable<TData, TValue>({
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
+  React.useEffect(() => {
+    let isMounted = true
+
+    async function fetchUsers() {
+      try {
+        const token = localStorage.getItem("auth_token")
+        const response = await fetch(USERS_URL, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
+
+        if (!response.ok) {
+          throw new Error(`Failed to load users (${response.status})`)
+        }
+
+        const payload = (await response.json()) as unknown
+        if (!isMounted) return
+        setUsersData(normalizeUsers(payload))
+      } catch {
+        if (!isMounted) return
+        setUsersData([])
+      }
+    }
+
+    void fetchUsers()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   const table = useReactTable({
-    data,
+    data: (usersData.length > 0 ? usersData : data) as TData[],
     columns,
     getPaginationRowModel: getPaginationRowModel(),
     getCoreRowModel: getCoreRowModel(),

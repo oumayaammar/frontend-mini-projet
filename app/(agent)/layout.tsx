@@ -37,7 +37,7 @@ export  default  async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <RoleGuard allowedRoles={["student"]}>
+          <RoleGuard allowedRoles={["agent"]}>
             <AppSideBar />
             <main className="w-full">
               <Navbar/>

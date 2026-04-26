@@ -37,6 +37,20 @@ function toMinutes(time: string) {
   return hours * 60 + minutes
 }
 
+function getSessionLabel(startTime: string) {
+  const slotMap: Record<string, string> = {
+    "8:30": "S1",
+    "10:10": "S2",
+    "11:50": "S3",
+    "13:30": "S4",
+    "13:50": "S4",
+    "15:30": "S5",
+    "17:10": "S6",
+  }
+
+  return slotMap[startTime] ?? "-"
+}
+
 function getStudentGroupName(studentGroup?: string) {
   return studentGroup || "No student group"
 }
@@ -126,13 +140,15 @@ export default function TimetablePage() {
                   <h3 className="font-semibold text-foreground">{row.day}</h3>
                 </div>
                 <div className="grid gap-2 p-3">
-                  {row.entries.map((entry, index) => (
+                  {row.entries.map((entry) => (
                     <div
                       key={entry.id}
                       className="flex flex-row justify-between gap-5 rounded-lg border-b-2 bg-secondary/30 p-3"
                     >
                       <div className="flex flex-col text-center">
-                        <span className="text-s font-medium text-foreground">S{index + 1}</span>
+                        <span className="text-s font-medium text-foreground">
+                          {getSessionLabel(entry.startTime)}
+                        </span>
                         <span className="text-xs font-medium text-muted-foreground">
                           ({entry.startTime} - {entry.endTime})
                         </span>

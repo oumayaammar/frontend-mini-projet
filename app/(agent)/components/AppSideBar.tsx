@@ -1,11 +1,10 @@
 "use client"
-import { Calendar, ChevronDown, ChevronUp, Home, Inbox, Newspaper, Plus, Projector, Search, Settings,User2 ,Users2, MessageCircle } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, Home, Inbox, Newspaper, Plus, Projector, Search, Settings,User2 ,Users2 } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
@@ -21,25 +20,19 @@ import {
 import Link from 'next/link';
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-// import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
 
 
 const items = [
   {
     title: "Home",
-    url: "/admin-dashboard",
+    url: "/agent-dashboard",
     icon: Home,
   },
   {
-    title: "Messages",
-    url: "#",
-    icon: MessageCircle,
-  },
-  {
-    title: "Time Tables",
-    url: "/timeTablesManagement",
-    icon: Calendar,
+    title: "Message",
+    url: "/agent/inbox",
+    icon: Inbox,
   },
 ];
 
@@ -61,7 +54,6 @@ const AppSideBar = () => {
       </SidebarHeader>
         
       <SidebarContent>
-        
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent >
             <SidebarMenu>
@@ -74,75 +66,22 @@ const AppSideBar = () => {
                     </Link>
                     
                   </SidebarMenuButton>
-                  {item.title === "Message" && (
-                    <SidebarMenuBadge>2</SidebarMenuBadge>
+                  {item.title === "Inbox" && (
+                    <SidebarMenuBadge>24</SidebarMenuBadge>
                   )}
                 </SidebarMenuItem>
               ))} 
             </SidebarMenu>
             
-            {/* NESTED : News */}
         <SidebarGroup>
           <SidebarGroupLabel>News</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/news-managment">
+                  <Link href="/agent/news">
                     <Newspaper />
                     See All News
-                  </Link>
-                </SidebarMenuButton>
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <Link href="/news-managment/add-news">
-                        <Plus />
-                        Add News
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        {/* NESTED : Courses  */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Courses</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/coursesManagement">
-                    <Projector />
-                    See All Courses
-                  </Link>
-                </SidebarMenuButton>
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <Link href="/coursesManagement/create">
-                        <Plus />
-                        Add Course
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        {/* NESTED : Users  */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Users</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/users">
-                    <Users2 />
-                    See All Users
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
