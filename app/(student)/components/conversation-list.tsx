@@ -38,12 +38,12 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
                 <div className="flex items-center gap-2">
                   <h3 className="truncate font-medium text-foreground text-sm">{conversation.name}</h3>
                   {conversation.online && (
-                    <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                    <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
                   )}
                 </div>
                 <p className="truncate text-xs text-muted-foreground mt-1">{conversation.lastMessage}</p>
               </div>
-              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+              <div className="flex flex-col items-end gap-1 shrink-0">
                 <span className="text-xs text-muted-foreground">{conversation.timestamp}</span>
                 {conversation.unread && conversation.unread > 0 && (
                   <Badge variant="default" className="h-5 w-5 p-0 flex items-center justify-center text-xs">

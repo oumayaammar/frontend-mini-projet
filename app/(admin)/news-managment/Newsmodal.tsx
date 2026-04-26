@@ -53,7 +53,7 @@ export function NewsModal({ open, onClose, onSave, initial }: NewsModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-120">
         <DialogHeader>
           <DialogTitle>{initial ? "Update News" : "Create News"}</DialogTitle>
         </DialogHeader>

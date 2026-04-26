@@ -36,7 +36,7 @@ export const createColumns = (
     accessorKey: "content",
     header: "Content",
     cell: ({ row }) => (
-      <span className="line-clamp-1 max-w-[300px] block">
+      <span className="line-clamp-1 max-w-75 block">
         {row.getValue("content")}
       </span>
     ),
